@@ -3,7 +3,8 @@ import createAuth0Client from "@auth0/auth0-spa-js";
 
 /** Define a default action to perform after authentication */
 const DEFAULT_REDIRECT_CALLBACK = () =>
-    window.history.replaceState({}, document.title, window.location.pathname);
+    console.log('abcdef');
+    //window.history.replaceState({}, document.title, window.location.href);
 
 let instance;
 import store from "@/store";
@@ -105,12 +106,20 @@ export const useAuth0 = ({
                 ) {
                     // handle the redirect and retrieve tokens
                     const { appState } = await this.auth0Client.handleRedirectCallback();
-
                     this.error = null;
 
                     // Notify subscribers that the redirect callback has happened, passing the appState
                     // (useful for retrieving any pre-authentication state)
                     onRedirectCallback(appState);
+                } else {
+                    const queryString = window.location.search;
+                    const urlParams = new URLSearchParams(queryString);
+                    if(urlParams.has('code') && urlParams.has('poid')) {
+                        await store.dispatch('bimAuth/syncOAuthCodes', {
+                            poid: urlParams.get('poid'),
+                            newOAuthToken: urlParams.get('code')
+                        })
+                    }
                 }
             } catch (e) {
                 this.error = e;

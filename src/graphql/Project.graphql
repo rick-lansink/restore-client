@@ -1,0 +1,11 @@
+mutation createProject($name: String! $due: date!) {
+    insert_Project(objects: {
+        dueDate: $due,
+        name: $name,
+        HasUsers: {
+            data: {}
+        }
+    }) {
+        affected_rows
+    }
+}

@@ -47,6 +47,7 @@ import RestoreMainView from "../components/layout/RestoreMainView";
 import viewerApi from "@/viewer/ViewerApi";
 import PageTitle from "../components/typography/PageTitle";
 import BimViewer from "../components/viewer/BimViewer";
+import {mapActions, mapGetters} from "vuex";
 export default {
   components: {
     BimViewer,
@@ -68,11 +69,18 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      token: 'bimAuth/token'
+    }),
     selectedMaterial() {
       return this.rootMaterials[this.selectedRootMaterialName]
     }
   },
   watch: {
+    token: async function(token) {
+      this.client.setAuthToken(token);
+      await this.getUserProject(this.$route.params.projectId);
+    },
     project: async function(project) {
       if (project.lastRevisionId) {
         this.rootMaterialSchemaId = await this.getRootMaterialSchemaId();
@@ -82,13 +90,15 @@ export default {
     },
   },
   async mounted() {
-    this.initClient();
-    await this.clientLogin();
-    await this.getUserProject(this.$route.params.projectId);
+    await this.initClient();
+    await this.fetchToken({projectId: this.$route.params.projectId});
   },
   methods: {
-    initClient() {
-      this.client = viewerApi.initClient();
+    ...mapActions({
+      'fetchToken': 'bimAuth/fetchOAuthToken'
+    }),
+    async initClient() {
+      this.client = await viewerApi.initClient();
     },
     selectRootMaterial(name) {
       this.selectedRootMaterialName = name;
@@ -98,9 +108,6 @@ export default {
     },
     highlightMaterial(objectIds) {
       this.$refs.viewer.xrayOthers(objectIds);
-    },
-    async clientLogin() {
-      await viewerApi.clientLogin(this.client);
     },
     async getUserProject(poid) {
       this.project = await viewerApi.callClient(this.client, {

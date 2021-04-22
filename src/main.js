@@ -20,10 +20,11 @@ Vue.use(Auth0Plugin, {
   clientId,
   audience: 'hasura',
   onRedirectCallback: appState => {
+    console.log(appState, 'abcdef');
     router.push(
         appState && appState.targetUrl
             ? appState.targetUrl
-            : window.location.pathname
+            : window.location.href
     );
   }
 });

@@ -13,6 +13,9 @@ export default {
         },
         user(state) {
             return state.user;
+        },
+        getToken(state) {
+            return state.token;
         }
     },
     mutations: {
@@ -20,7 +23,6 @@ export default {
             state.isAuthenticated = isAuthenticated;
         },
         SET_TOKEN(state, token) {
-            console.log(token);
             state.token = token;
         },
         SET_USER(state, data) {
@@ -36,14 +38,16 @@ export default {
         // },
 
         logout() {
+            localStorage.removeItem('apollo-token')
             Vue.prototype.$auth.logout({
-                returnTo: window.locaion.origin
+                returnTo: window.location.origin
             })
         },
         setLogin({commit}, {isAuthenticated, user, token}) {
             commit("SET_AUTHENTICATED", isAuthenticated);
             commit("SET_TOKEN", token);
             commit("SET_USER", user);
+            localStorage.setItem('apollo-token', token);
             router.push('projects');
         }
     }

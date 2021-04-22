@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Projects from '../views/Projects.vue'
+import Projects from '../views/Projects'
 import Home from "../views/Home.vue";
 import { authGuard } from "../libs/auth/authGuard";
+import Create from "../views/Projects/Create";
 Vue.use(VueRouter)
 
 const routes = [
@@ -15,6 +16,12 @@ const routes = [
     path: '/projects',
     name: 'Projects',
     component: Projects,
+    beforeEnter: authGuard
+  },
+  {
+    path: '/projects/create',
+    name: 'projectCreate',
+    component: Create,
     beforeEnter: authGuard
   },
   {
