@@ -6,16 +6,32 @@
         show-empty
         :items="projects"
         :fields="fields"
-        @row-clicked="(record) => {
-          $router.push(`/project/${record.projectId}`)
-        }"
     >
+      <template #cell(show_details)="row">
+        <b-icon
+            @click="row.toggleDetails"
+            :icon="row.detailsShowing ? 'caret-up' : 'caret-down'" />
+      </template>
+      <template #cell(actions)="row">
+        <b-button
+            variant="primary"
+            @click="$router.push(`/project/${row.item.projectId}/overview`)"
+        >View project</b-button>
+      </template>
       <template #empty>
         <p>It looks like no BIMServer projects have been configured yet</p>
       </template>
+      <template #row-details="row">
+        <b-card>
+          <search-requests-subtable
+            :search-requests="row.item.searchRequests"
+            :parent-id="row.item.projectId"
+          />
+        </b-card>
+      </template>
     </b-table>
     <b-button
-        primary
+        variant="primary"
         @click="() => {
           $router.push('/projects/create')
         }"
@@ -29,9 +45,11 @@
 import PageTitle from "../../components/typography/PageTitle";
 import { userProjects } from '@/graphql/BimOAuth.graphql';
 import {mapActions} from "vuex";
+import SearchRequestsSubtable from "./SearchRequestsSubtable";
 export default {
   name: 'Home',
   components: {
+    SearchRequestsSubtable,
     PageTitle
   },
   data: function() {
@@ -39,11 +57,17 @@ export default {
       client: null,
       projects: [],
       fields: [{
+        key: 'show_details',
+        label: ''
+      }, {
         key: 'name',
         sortable: true
       }, {
         key: 'dueDate',
         sortable: true,
+      }, {
+        key: 'actions',
+        label: ''
       }]
     }
   },

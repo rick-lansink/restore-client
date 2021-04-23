@@ -1,12 +1,12 @@
 <template>
-  <h1 :class="{inverse: inverse, small: small}">
+  <h2 :class="{inverse: inverse, small: small}">
     <slot />
-  </h1>
+  </h2>
 </template>
 
 <script>
 export default {
-  name: "PageTitle",
+  name: "ComponentTitle",
   props: {
     inverse: {
       type: Boolean,
@@ -20,15 +20,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import "@/assets/styling/typography";
-h1 {
-  @include primary-heading;
+h2 {
+  @include secondary-heading;
   &.inverse {
     color: $inverse-text-color;
-  }
-  &.small {
-    font-size: 18px;
   }
 }
 </style>

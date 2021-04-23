@@ -1,5 +1,4 @@
 import Vue from "vue";
-import router from "../../router";
 export default {
     namespaced: true,
     state: {
@@ -48,7 +47,6 @@ export default {
             commit("SET_TOKEN", token);
             commit("SET_USER", user);
             localStorage.setItem('apollo-token', token);
-            router.push('projects');
         }
     }
 };

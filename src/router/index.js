@@ -4,6 +4,12 @@ import Projects from '../views/Projects'
 import Home from "../views/Home.vue";
 import { authGuard } from "../libs/auth/authGuard";
 import Create from "../views/Projects/Create";
+import ProjectDetail from '../views/ProjectDetail/index';
+import ProjectCreateSidebar from "../views/ProjectDetail/ProjectCreate/sidebar";
+import ProjectCreateTop from '../views/ProjectDetail/ProjectCreate/top';
+import AttachOAuth from "../views/Projects/AttachOAuth";
+import ProjectOverviewSidebar from "../views/ProjectDetail/ProjectOverview/sidebar";
+import ProjectOverviewTop from '../views/ProjectDetail/ProjectOverview/top';
 Vue.use(VueRouter)
 
 const routes = [
@@ -25,13 +31,31 @@ const routes = [
     beforeEnter: authGuard
   },
   {
-    path: '/project/:projectId/',
-    name: 'project',
+    path: '/projects/attachOAuth/:id',
+    name: 'projectAttachOAuth',
+    component: AttachOAuth,
+    beforeEnter: authGuard
+  },
+  {
+    path: '/project/:projectId',
+    name: 'projectDetail',
     beforeEnter: authGuard,
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/ProjectDetail.vue')
+    component: ProjectDetail,
+    children: [
+        {
+          path: 'overview',
+          components: {
+            sidebar: ProjectOverviewSidebar,
+            topview: ProjectOverviewTop
+          }
+        }, {
+          path :'create',
+          components: {
+            sidebar: ProjectCreateSidebar,
+            topview: ProjectCreateTop
+          }
+      }
+    ]
   }
 ]
 

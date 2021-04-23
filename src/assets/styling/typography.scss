@@ -3,6 +3,7 @@
 
 @mixin base-text {
   font-family: 'Mulish', sans-serif;
+  font-size: 12px;
   color: $primary-text-color;
 }
 
@@ -10,4 +11,10 @@
   @include base-text;
   font-size: 24px;
   font-weight: bold;
+}
+
+@mixin secondary-heading {
+  @include base-text;
+  font-weight: bold;
+  font-size: 16px;
 }

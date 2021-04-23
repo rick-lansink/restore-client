@@ -19,6 +19,7 @@ name: "RestoreBottomMain"
       width: 110%;
       margin-left: -10%;
       background-color: $background-color;
+      z-index: 10;
     }
   }
 }

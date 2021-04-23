@@ -1,5 +1,20 @@
 <template>
   <div class="viewer__wrapper">
+    <div class="viewer__title">
+      <b-container>
+        <component-title>
+          BIM Viewer
+          <b-dropdown size="sm" variant="link">
+            <b-dropdown-form>
+              <b-form-group label="Viewer mode">
+                <b-form-radio v-model="internalViewerMode"  name="viewer-mode" value="xray">X-Ray</b-form-radio>
+                <b-form-radio v-model="internalViewerMode"  name="viewer-mode" value="hide">Hide / show</b-form-radio>
+              </b-form-group>
+            </b-dropdown-form>
+          </b-dropdown>
+        </component-title>
+      </b-container>
+    </div>
     <canvas class="viewer__canvas" :id="bimViewerId" ref="canvas" />
     <canvas id="cube-canvas" ref="cubeCanvas" />
   </div>
@@ -8,8 +23,11 @@
 <script>
 import viewerApi from "../../viewer/ViewerApi";
 import {NavCubePlugin} from "@xeokit/xeokit-sdk/src/plugins/NavCubePlugin/NavCubePlugin.js";
+import {mapGetters} from "vuex";
+import ComponentTitle from "../typography/ComponentTitle";
 export default {
   name: "BimViewer",
+  components: {ComponentTitle},
   props: {
     project: {
       type: Object,
@@ -30,6 +48,21 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      'selectedItems': 'viewer/selectedItems',
+      'viewerMode': 'viewer/viewerMode',
+      'hideOthers': 'viewer/hideOthers'
+    }),
+    internalViewerMode: {
+      get() {
+        return this.viewerMode;
+      },
+      set(mode) {
+        if (mode) {
+          this.$store.dispatch('viewer/setViewerMode', {mode});
+        }
+      }
+    },
     getProjectRoid() {
       return this.project ? this.project.lastRevisionId : '';
     },
@@ -48,9 +81,14 @@ export default {
   watch: {
     project: function(project) {
       if (project) {
-        console.log('project changed');
         this.setupViewer();
       }
+    },
+    selectedItems: function() {
+      this.updateViewerSelection();
+    },
+    viewerMode: function() {
+      this.updateViewerSelection();
     }
   },
   methods: {
@@ -83,6 +121,21 @@ export default {
       })
       this.addModelListeners();
     },
+    updateViewerSelection() {
+      if(this.viewerMode === 'xray') {
+        if(this.hideOthers) {
+          this.xrayOthers(this.selectedItems);
+        } else {
+          this.xrayItems(this.selectedItems);
+        }
+      } else if (this.viewerMode === 'hide') {
+        if(this.hideOthers) {
+          this.hideOtherItems(this.selectedItems);
+        } else {
+          this.xrayItems(this.selectedItems);
+        }
+      }
+    },
     xrayOthers(objectIds) {
       let scene = this.viewer.scene;
       scene.setObjectsVisible(scene.objectIds, true);
@@ -96,6 +149,32 @@ export default {
         }
       })
     },
+    xrayItems(objectIds) {
+      let scene = this.viewer.scene;
+      objectIds.map((objectId) => {
+        let entity = scene.objects[objectId];
+        if (entity) {
+          entity.xrayed = true;
+        }
+      })
+    },
+    hideOtherItems(objectIds) {
+      let scene = this.viewer.scene;
+      scene.setObjectsVisible(scene.objectIds, false);
+      scene.setObjectsXRayed(scene.objectIds, false);
+      scene.setObjectsSelected(scene.selectedObjectIds, false);
+      scene.setObjectsHighlighted(scene.highlightedObjectIds, false);
+      objectIds.map((objectId) => {
+        let entity = scene.objects[objectId];
+        if (entity) {
+          entity.visible = true;
+        }
+      });
+      this.jumpToModel();
+    },
+    jumpToModel() {
+      this.viewer.cameraFlight.jumpTo(this.model);
+    },
     addModelListeners() {
       // Fit camera to model when loaded
       this.model.on("loaded", () => {
@@ -105,47 +184,48 @@ export default {
       this.model.on("error", (errMsg) => {
         console.log("Error while loading: " + errMsg);
       })
-      this.viewer.scene.input.on("mousemove", (coords) => {
-        let hit = this.viewer.scene.pick({
-          canvasPos: coords
-        })
-        if (hit) {
-          if (!this.lastEntity || hit.entity.id !== this.lastEntity.id) {
-            if (this.lastEntity) {
-              this.lastEntity.highlighted = false;
-            }
 
-            this.lastEntity = hit.entity;
-            hit.entity.highlighted = true;
-          } else {
-            if (this.lastEntity) {
-              this.lastEntity.highlighted = false;
-              this.lastEntity = null;
-            }
-          }
-        }
-      });
+      // this.viewer.scene.input.on("mousemove", (coords) => {
+      //   let hit = this.viewer.scene.pick({
+      //     canvasPos: coords
+      //   })
+      //   if (hit) {
+      //     if (!this.lastEntity || hit.entity.id !== this.lastEntity.id) {
+      //       if (this.lastEntity) {
+      //         this.lastEntity.highlighted = false;
+      //       }
+      //
+      //       this.lastEntity = hit.entity;
+      //       hit.entity.highlighted = true;
+      //     } else {
+      //       if (this.lastEntity) {
+      //         this.lastEntity.highlighted = false;
+      //         this.lastEntity = null;
+      //       }
+      //     }
+      //   }
+      // });
 
-      this.viewer.scene.on("mouseclicked", (coords) => {
-        let hit = this.viewer.scene({
-          canvasPos: coords
-        })
-        if (hit) {
-          let entity = hit.entity;
-          let metaObject = this.viewer.metaScene.metaObjects[entity.id];
-          if (metaObject) {
-            console.log(JSON.stringify(metaObject.getJSON(), null, "\t"));
-          } else {
-            const parent = entity.parent;
-            if (parent) {
-              metaObject = this.viewer.metaScene.metaObjects[parent.id];
-              if (metaObject) {
-                console.log(JSON.stringify(metaObject.getJSON(), null, "\t"));
-              }
-            }
-          }
-        }
-      });
+      // this.viewer.scene.on("mouseclicked", (coords) => {
+      //   let hit = this.viewer.scene({
+      //     canvasPos: coords
+      //   })
+      //   if (hit) {
+      //     let entity = hit.entity;
+      //     let metaObject = this.viewer.metaScene.metaObjects[entity.id];
+      //     if (metaObject) {
+      //       console.log(JSON.stringify(metaObject.getJSON(), null, "\t"));
+      //     } else {
+      //       const parent = entity.parent;
+      //       if (parent) {
+      //         metaObject = this.viewer.metaScene.metaObjects[parent.id];
+      //         if (metaObject) {
+      //           console.log(JSON.stringify(metaObject.getJSON(), null, "\t"));
+      //         }
+      //       }
+      //     }
+      //   }
+      // });
     }
   }
 }
@@ -158,6 +238,12 @@ export default {
     display: flex;
     height: 100%;
     position: relative;
+    flex-direction: column;
+  }
+  &__title {
+    position: relative;
+    top: -30px;
+    margin-left: 10%;
   }
   &__canvas {
     width: 100%;

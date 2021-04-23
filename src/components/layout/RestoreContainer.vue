@@ -16,7 +16,7 @@ name: "RestoreContainer"
 .restore {
   &__container {
     width: 100vw;
-    height: 100vh;
+    height: 90vh;
     display: grid;
     grid-template-columns: 50% 50%;
     grid-template-rows: min-content auto;

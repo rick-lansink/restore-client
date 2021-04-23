@@ -15,8 +15,12 @@ export default {
     initViewer: function (canvas) {
       let viewer = new Viewer({
           canvasElement: canvas,
-          transparent: true
+          transparent: true,
       });
+
+        viewer.camera.eye = [-3.933, 2.855, 27.018];
+        viewer.camera.look = [4.400, 3.724, 8.899];
+        viewer.camera.up = [-0.018, 0.999, 0.039];
 
         viewer.scene.xrayMaterial.fillAlpha = 0.1;
         viewer.scene.xrayMaterial.fillColor = [0, 0, 0];
@@ -70,9 +74,9 @@ export default {
         });
         return response.json();
     },
-    oAuthLogin: async function(registration) {
-      console.log(registration);
-      document.location = `${this.BIM_SERVER_ADDRESS}/oauth/authorize+?redirect_uri=${document.location}&response_type=code&client_id=restore&auth_type=singleproject`
+    oAuthLogin: async function(redirectUri) {
+      console.log(redirectUri);
+      document.location = `${this.BIM_SERVER_ADDRESS}/oauth/authorize+?redirect_uri=${window.location.origin}${redirectUri}&response_type=code&client_id=restore&auth_type=singleproject`
     },
     callClient: function (client, {
         interfaceName, methodName, data

@@ -1,6 +1,7 @@
 import ViewerApi from "../../viewer/ViewerApi";
 import { apolloClient } from '@/vue-apollo'
 import { syncOAuth, getOAuthToken } from '../../graphql/BimOAuth.graphql'
+import router from "../../router";
 export default {
     namespaced: true,
     state: {
@@ -43,14 +44,16 @@ export default {
             const registration = await ViewerApi.oAuthRegister();
             await ViewerApi.oAuthLogin(registration);
         },
-        async syncOAuthCodes(state, {poid, newOAuthToken}) {
-            apolloClient.mutate({
+        async syncOAuthCodes(state, {poid, newOAuthToken, internalId}) {
+            await apolloClient.mutate({
                 mutation: syncOAuth,
                 variables: {
                     poid: poid,
-                    token: newOAuthToken
+                    token: newOAuthToken,
+                    internalId
                 }
             });
+            router.push('/projects');
         }
     }
 }

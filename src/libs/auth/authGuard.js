@@ -8,6 +8,7 @@ export const authGuard = (to, from, next) => {
             return next();
         }
 
+
         // Otherwise, log in
         authService.loginWithRedirect({ appState: { targetUrl: to.fullPath } });
     };

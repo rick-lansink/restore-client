@@ -1,0 +1,20 @@
+query getProjectSearchRequests($projectId: String!) {
+    SearchRequest(where: {
+        Project: {
+            projectId: {
+                _eq: $projectId
+            }
+        }
+    }) {
+        id
+        name
+        created_at
+        updated_at
+        dueDate
+        extraRequirements
+        extraWishes
+        deliveryFrom
+        deliveryUntil
+        priority
+    }
+}

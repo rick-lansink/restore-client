@@ -1,6 +1,6 @@
 <template>
   <div class="restore__sidebar">
-    <b-container fluid>
+    <b-container class="restore__sidebar__container" fluid>
       <slot />
     </b-container>
   </div>
@@ -23,6 +23,15 @@ name: "RestoreTreeSidebar"
     padding: 10px 0;
     height: 100%;
     overflow-y: scroll;
+    &__container {
+      height: 100%;
+      > div {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+      }
+    }
   }
 }
 </style>

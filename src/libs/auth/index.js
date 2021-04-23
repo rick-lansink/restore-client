@@ -1,10 +1,6 @@
 import Vue from "vue";
 import createAuth0Client from "@auth0/auth0-spa-js";
 
-/** Define a default action to perform after authentication */
-const DEFAULT_REDIRECT_CALLBACK = () =>
-    console.log('abcdef');
-    //window.history.replaceState({}, document.title, window.location.href);
 
 let instance;
 import store from "@/store";
@@ -12,10 +8,15 @@ import store from "@/store";
 /** Returns the current instance of the SDK */
 export const getInstance = () => instance;
 
+const DEFAULT_REDIRECT_CALLBACK = () => {
+    console.log(window.location.pathname);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+
 /** Creates an instance of the Auth0 SDK. If one has already been created, it returns that instance */
-export const useAuth0 = ({
+export const useAuth0 = ({redirectUri = window.location.origin,
                              onRedirectCallback = DEFAULT_REDIRECT_CALLBACK,
-                             redirectUri = window.location.origin,
                              ...options
                          }) => {
     if (instance) return instance;
@@ -112,14 +113,14 @@ export const useAuth0 = ({
                     // (useful for retrieving any pre-authentication state)
                     onRedirectCallback(appState);
                 } else {
-                    const queryString = window.location.search;
-                    const urlParams = new URLSearchParams(queryString);
-                    if(urlParams.has('code') && urlParams.has('poid')) {
-                        await store.dispatch('bimAuth/syncOAuthCodes', {
-                            poid: urlParams.get('poid'),
-                            newOAuthToken: urlParams.get('code')
-                        })
-                    }
+                    // const queryString = window.location.search;
+                    // const urlParams = new URLSearchParams(queryString);
+                    // if(urlParams.has('code') && urlParams.has('poid')) {
+                    //     await store.dispatch('bimAuth/syncOAuthCodes', {
+                    //         poid: urlParams.get('poid'),
+                    //         newOAuthToken: urlParams.get('code')
+                    //     })
+                    // }
                 }
             } catch (e) {
                 this.error = e;

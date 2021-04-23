@@ -7,5 +7,8 @@ mutation createProject($name: String! $due: date!) {
         }
     }) {
         affected_rows
+        returning {
+            internalId
+        }
     }
 }

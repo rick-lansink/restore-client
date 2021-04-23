@@ -632,7 +632,6 @@ export default class BimServerClient {
 			request.token = this.token;
 		}
 
-		console.log(request);
 
 		let key = requests[0][1];
 		requests.forEach((item, index) => {

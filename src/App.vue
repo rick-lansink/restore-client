@@ -26,6 +26,9 @@ body {
   height: 100%;
   background-color: $background-color !important;
 }
-
+.btn-primary {
+  background-color: $primary-color !important;
+  border-color: $primary-color !important;
+}
 
 </style>

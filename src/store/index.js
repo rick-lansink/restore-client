@@ -3,6 +3,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import auth from "./auth";
 import bimAuth from "./auth/bimAuth";
+import viewer from './viewer';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -29,6 +30,7 @@ export default new Vuex.Store({
     },
     modules: {
         auth,
-        bimAuth
+        bimAuth,
+        viewer
     }
 });

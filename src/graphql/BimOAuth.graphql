@@ -3,6 +3,10 @@ query userProjects {
         projectId
         dueDate
         name
+        SearchRequests {
+            id
+            name
+        }
     }
 }
 
@@ -12,16 +16,17 @@ query getOAuthToken($projectId: String!) {
     }
 }
 
-mutation syncOAuth($poid: String!, $token: String!) {
+mutation syncOAuth($poid: String!, $token: String!, $internalId: uuid!) {
+    update_Project(where: {
+        internalId: {_eq: $internalId}
+    }, _set: {
+        projectId: $poid
+    }) {
+        affected_rows
+    }
     insert_UserProjectAuth(objects: {
-        Project: {
-            data: {projectId: $poid},
-            on_conflict: {
-                constraint: Project_pkey,
-                update_columns: projectId
-            }
-        },
         oauthCode: $token
+        projectId: $poid
     }, on_conflict: {
         constraint: UserProjectAuth_pkey,
         update_columns: oauthCode
