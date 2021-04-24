@@ -4,9 +4,11 @@
 </div>
 </template>
 <script>
+import PageTitle from "../../../components/typography/PageTitle";
 export default {
   name: 'ProjectDetail',
   components: {
+    PageTitle
 
   },
   data: function() {

@@ -22,7 +22,7 @@
 
 <script>
 import viewerApi from "../../viewer/ViewerApi";
-import {NavCubePlugin} from "@xeokit/xeokit-sdk/src/plugins/NavCubePlugin/NavCubePlugin.js";
+//import {NavCubePlugin} from "@xeokit/xeokit-sdk/src/plugins/NavCubePlugin/NavCubePlugin.js";
 import {mapGetters} from "vuex";
 import ComponentTitle from "../typography/ComponentTitle";
 export default {
@@ -73,7 +73,7 @@ export default {
   async mounted() {
     this.initViewer();
     this.initLoader();
-    this.initNavCube();
+    //this.initNavCube();
     if (this.project && this.project.oid) {
       await this.setupViewer();
     }
@@ -99,14 +99,14 @@ export default {
       this.loader = viewerApi.initLoader(this.viewer, this.client);
     },
     initNavCube() {
-      new NavCubePlugin(this.viewer, {
-        canvasId: "cube-canvas",
-        visible: true,
-        size: 50,
-        alignment: "bottomRight",
-        bottomMargin: 20,
-        rightMargin: 10
-      });
+      // new NavCubePlugin(this.viewer, {
+      //   canvasId: "cube-canvas",
+      //   visible: true,
+      //   size: 50,
+      //   alignment: "bottomRight",
+      //   bottomMargin: 20,
+      //   rightMargin: 10
+      // });
     },
     async setupViewer() {
       this.model = this.loader.load({
@@ -178,6 +178,10 @@ export default {
     addModelListeners() {
       // Fit camera to model when loaded
       this.model.on("loaded", () => {
+        console.log('model has loaded');
+        console.log(this.model);
+        this.viewer.cameraFlight.fit = true;
+        this.viewer.cameraFlight.fitFOV = 55;
         this.viewer.cameraFlight.jumpTo(this.model);
       });
 
