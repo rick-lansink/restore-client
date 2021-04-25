@@ -18,3 +18,67 @@ query getProjectSearchRequests($projectId: String!) {
         priority
     }
 }
+
+query getSearchRequestById($requestId: uuid!) {
+    SearchRequest(where: {
+        id: {_eq: $requestId}
+    }) {
+        id
+        name
+        created_at
+        updated_at
+        dueDate
+        extraRequirements
+        extraWishes
+        deliveryFrom
+        deliveryUntil
+        priority
+        RootComponents {
+            id
+            valueHash
+            name
+            type
+            DimensionSets {
+                id
+                dimensionHash
+                dimensionOne dimensionTwo dimensionThree
+                usedBy
+            }
+        }
+    }
+}
+
+mutation newSearchRequest($internalProjectId: uuid!) {
+    insert_SearchRequest(objects: {
+        projectId: $internalProjectId
+    }) {
+        affected_rows
+        returning {
+            id
+        }
+    }
+}
+
+mutation setRootComponent($object: [RootComponent_insert_input!]!, $rootHash: String!, $requestId: uuid!, $dimensionSets: [String!]!) {
+    insert_RootComponent(objects: $object, on_conflict: {
+        constraint: RootComponent_searchRequestId_valueHash_key,
+        update_columns: [name]
+    }) {
+        affected_rows
+    }
+    delete_RootComponent(where: {
+        searchRequestId: {_eq: $requestId},
+        valueHash: {_neq: $rootHash}
+    }) {
+        affected_rows
+    }
+    delete_DimensionSet(where: {
+        RootComponent: {
+            searchRequestId: {_eq: $requestId},
+            valueHash: {_eq: $rootHash}
+        },
+        dimensionHash: {_nin: $dimensionSets}
+    }) {
+        affected_rows
+    }
+}

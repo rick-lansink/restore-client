@@ -22,7 +22,7 @@ name: "RestoreTreeSidebar"
     flex: 1;
     padding: 10px 0;
     height: 100%;
-    overflow-y: scroll;
+    overflow: hidden;
     &__container {
       height: 100%;
       > div {

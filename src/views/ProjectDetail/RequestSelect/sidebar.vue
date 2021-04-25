@@ -3,88 +3,70 @@
     <div>
       <page-title inverse>Search</page-title>
       <b-tabs pills>
-        <b-tab title="Components">
+        <b-tab
+            class="selector-tab"
+            title="Components"
+            title-link-class="text-light"
+        >
           <ul class="components-list">
             <li
-              v-for="(rootComponents, rootType) in rootComponent.items"
+              v-for="(components, rootType) in rootComponent.items"
               :key="rootType"
             >
               <b-btn
                   v-b-toggle="`collapse-component-${rootType}`"
                   variant="link">
-                {{rootType}} ({{rootComponents.values.children.length}})
+                  <b-icon font-scale="0.8" icon="caret-down-fill" class="when-closed" />
+                  <b-icon font-scale="0.8" icon="caret-up-fill" class="when-opened" />
+                {{rootType}} ({{components.values.children.length}})
               </b-btn>
               <b-collapse
                 :id="`collapse-component-${rootType}`"
               >
                 <ul>
                   <li
-                    v-for="rootComponent in rootComponents.values.children"
-                    :key="rootComponent.valueHash"
+                    v-for="component in sortedComponents(components.values.children)"
+                    :key="component.valueHash"
                   >
                     <b-btn
-                        v-b-toggle="`collapse-dimension-${rootComponent.valueHash.replace(/\s/g, '')}`"
-                        variant="link">
-                      {{rootComponent.componentName}} ({{rootComponent.dimensionSets.length}})
-                    </b-btn>
-                    <b-collapse
-                      :id="`collapse-dimension-${rootComponent.valueHash.replace(/\s/g, '')}`"
+                        variant="link"
+                        @click="selectRootComponent(rootType, component.valueHash)"
                     >
-                      <ul>
-                        <li
-                          v-for="dimensionSet in rootComponent.dimensionSets"
-                        >
-                          <b-btn
-                              variant="link"
-                              @click="selectRootComponentDimensionSet(rootType, rootComponent.valueHash, dimensionSet.dimensionHash)"
-                          >
-                            {{dimensionSet.dimensionHash}}
-                          </b-btn>
-                        </li>
-                      </ul>
-                    </b-collapse>
+                      {{component.componentName}} ({{component.dimensionSets.length}})
+                    </b-btn>
                   </li>
                 </ul>
               </b-collapse>
             </li>
           </ul>
-<!--          <b-collapse-->
-<!--            v-for="(rootComponents, rootType) in rootComponent.items"-->
-<!--            :key="rootType"-->
-<!--            :text="rootType"-->
-<!--          >-->
-<!--            <b-dropdown-item>-->
-<!--              <p v-for="rootComponent in rootComponents.values.rootComponents" :key="rootComponent.valueHash" :text="rootComponent.componentName">-->
-<!--                {{}}-->
-<!--              </p>-->
-<!--              <b-dropdown-->
-<!--                v-for="rootComponent in rootComponents"-->
-<!--                :key="rootComponent.valueHash"-->
-<!--                :text="rootComponent.componentName"-->
-<!--              >-->
-<!--                <b-dropdown-item>-->
-<!--                  <b-dropdown-->
-<!--                    v-for="dimensionSet in rootComponent.dimensionSets"-->
-<!--                  >-->
-
-<!--                  </b-dropdown>-->
-<!--                </b-dropdown-item>-->
-<!--              </b-dropdown>-->
-            </b-dropdown-item>
-          </b-collapse>
         </b-tab>
-        <b-tab title="Materials">
-          <b-list-group>
-            <b-list-group-item
-                v-for="rootMaterial in rootMaterial.items"
-                :key="rootMaterial.values.oid"
-                @click="selectRootMaterial(rootMaterial.values.materialName)"
+        <b-tab
+            title-link-class="text-light"
+            class="selector-tab"
+            title="Materials"
+        >
+          <ul class="components-list">
+            <li
+              v-for="rootMaterialKey in sortedRootMaterials"
+              :key="rootMaterialKey"
             >
-              {{ rootMaterial.values.materialName }}
-            </b-list-group-item>
-          </b-list-group>
+              <b-btn
+                  variant="link"
+                  @click="selectRootMaterial(rootMaterialKey)"
+              >
+                {{rootMaterialKey}} ({{rootMaterial.items[rootMaterialKey].values.usedBy.length}})
+              </b-btn>
+            </li>
+          </ul>
         </b-tab>
       </b-tabs>
+<!--      <div>-->
+<!--        <b-btn class="inverse" variant="link">Cancel</b-btn>-->
+<!--        <b-btn-->
+<!--            variant="outline-light"-->
+<!--            :disabled="!(rootMaterial.selectedMaterial || rootComponent.selectedComponent)"-->
+<!--        >Save</b-btn>-->
+<!--      </div>-->
     </div>
   </div>
 </template>
@@ -129,6 +111,9 @@ export default {
     }
   },
   computed: {
+    sortedRootMaterials() {
+      return Object.keys(this.rootMaterial.items).sort();
+    },
     selectedMaterial() {
       return this.rootMaterial.items[this.rootMaterial.selectedMaterial]
     },
@@ -174,13 +159,20 @@ export default {
     selectRootMaterial(name) {
       this.rootMaterial.selectedMaterial = name;
       this.$store.dispatch('viewer/setItems', {
-        items: this.rootMaterial.selectedMaterial.values.usedBy.map((object) => {
+        items: this.selectedMaterial.values.usedBy.map((object) => {
           return object.globalId;
         })
       });
       this.setTopData({
         selectedRootMaterialName: name,
         rootMaterials:  this.rootMaterial.items
+      })
+    },
+    selectRootComponent(rootType, componentName) {
+      this.rootComponent.rootType = rootType;
+      this.rootComponent.selectedComponent = componentName;
+      this.setTopData({
+        selectedRootComponent: this.selectedComponent
       })
     },
     selectRootComponentDimensionSet(rootType, componentName, dimensionName) {
@@ -244,13 +236,52 @@ export default {
       let data = atob(response.data);
       return (JSON.parse(data)).records;
     },
+    sortedComponents(components) {
+      return [...components].sort((a, b) => {
+        return (a.componentName > b.componentName) ? 1 : ((b.componentName > a.componentName) ? -1 : 0);
+      })
+    }
   }
 }
 </script>
 
 <style lang="scss">
 @import "@/assets/styling/colors";
+@import "@/assets/styling/typography";
 .components-list {
+  margin-top: 20px;
   color: $inverse-text-color !important;
+  list-style: none;
+  padding-left: 0;
+  ul {
+    list-style: none;
+  }
+  .btn-link {
+    color: $inverse-text-color !important;
+    font-weight: bold;
+    &.collapsed > .when-opened,
+    :not(&.collapsed) > .when-closed {
+      display: none;
+    }
+  }
+}
+
+.nav-pills .nav-link.active {
+  background-color: rgba(0,0,0,0) !important;
+  border: 1px solid $inverse-text-color;
+}
+
+.nav-pills .text-light {
+  @include base-text;
+  font-weight: bold;
+}
+
+.selector-tab {
+  max-height: 65vh;
+  margin-bottom: 20px;
+  overflow-y: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>

@@ -16,8 +16,11 @@ name: "RestoreMainView"
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: hidden;
     > * {
       height: 50%;
+      overflow: hidden;
     }
   }
 }

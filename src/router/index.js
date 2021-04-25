@@ -5,8 +5,8 @@ import Home from "../views/Home.vue";
 import { authGuard } from "../libs/auth/authGuard";
 import Create from "../views/Projects/Create";
 import ProjectDetail from '../views/ProjectDetail/index';
-import ProjectCreateSidebar from "../views/ProjectDetail/ProjectCreate/sidebar";
-import ProjectCreateTop from '../views/ProjectDetail/ProjectCreate/top';
+import RequestSelectSide from "../views/ProjectDetail/RequestSelect/sidebar";
+import RequestSelectTop from '../views/ProjectDetail/RequestSelect/top';
 import AttachOAuth from "../views/Projects/AttachOAuth";
 import ProjectOverviewSidebar from "../views/ProjectDetail/ProjectOverview/sidebar";
 import ProjectOverviewTop from '../views/ProjectDetail/ProjectOverview/top';
@@ -49,10 +49,10 @@ const routes = [
             topview: ProjectOverviewTop
           }
         }, {
-          path :'create',
+          path :'request/:requestId',
           components: {
-            sidebar: ProjectCreateSidebar,
-            topview: ProjectCreateTop
+            sidebar: RequestSelectSide,
+            topview: RequestSelectTop
           }
       }
     ]

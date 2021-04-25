@@ -16,7 +16,6 @@
       </b-container>
     </div>
     <canvas class="viewer__canvas" :id="bimViewerId" ref="canvas" />
-    <canvas id="cube-canvas" ref="cubeCanvas" />
   </div>
 </template>
 
@@ -84,8 +83,13 @@ export default {
         this.setupViewer();
       }
     },
-    selectedItems: function() {
-      this.updateViewerSelection();
+    selectedItems: function(items) {
+      if (items && items.length > 0) {
+        this.updateViewerSelection();
+      } else {
+        this.resetViewer();
+      }
+
     },
     viewerMode: function() {
       this.updateViewerSelection();
@@ -149,6 +153,13 @@ export default {
         }
       })
     },
+    resetViewer() {
+      let scene = this.viewer.scene;
+      scene.setObjectsVisible(scene.objectIds, true);
+      scene.setObjectsXRayed(scene.objectIds, false);
+      scene.setObjectsSelected(scene.selectedObjectIds, false);
+      scene.setObjectsHighlighted(scene.highlightedObjectIds, false);
+    },
     xrayItems(objectIds) {
       let scene = this.viewer.scene;
       objectIds.map((objectId) => {
@@ -179,10 +190,10 @@ export default {
       // Fit camera to model when loaded
       this.model.on("loaded", () => {
         console.log('model has loaded');
-        console.log(this.model);
         this.viewer.cameraFlight.fit = true;
         this.viewer.cameraFlight.fitFOV = 55;
         this.viewer.cameraFlight.jumpTo(this.model);
+        this.updateViewerSelection();
       });
 
       this.model.on("error", (errMsg) => {
@@ -246,21 +257,11 @@ export default {
   }
   &__title {
     position: relative;
-    top: -30px;
     margin-left: 10%;
   }
   &__canvas {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 30px);
   }
-}
-
-#cube-canvas {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  bottom: 20px;
-  right: 10px;
-  z-index: 200000;
 }
 </style>

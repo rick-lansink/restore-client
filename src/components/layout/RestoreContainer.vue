@@ -15,8 +15,8 @@ name: "RestoreContainer"
 @import "@/assets/styling/layout.scss";
 .restore {
   &__container {
-    width: 100vw;
-    height: 90vh;
+    width: 96vw;
+    height: 94vh;
     display: grid;
     grid-template-columns: 50% 50%;
     grid-template-rows: min-content auto;

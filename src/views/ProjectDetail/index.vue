@@ -1,6 +1,7 @@
 <template>
   <restore-container>
     <div class="restore__container__header">
+      <app-header />
       <page-title>{{ project.name }}</page-title>
     </div>
     <restore-tree-sidebar>
@@ -17,6 +18,7 @@
             name="topview"
             :project="project"
             :data="topData"
+            @reset="topData = {}"
         />
       </restore-top-main>
       <restore-bottom-main>
@@ -41,9 +43,11 @@ import viewerApi from "@/viewer/ViewerApi";
 import PageTitle from "../../components/typography/PageTitle";
 import BimViewer from "../../components/viewer/BimViewer";
 import {mapActions, mapGetters} from "vuex";
+import AppHeader from "../../components/layout/AppHeader";
 export default {
   name: 'ProjectDetail',
   components: {
+    AppHeader,
     BimViewer,
     PageTitle,
     RestoreBottomMain,

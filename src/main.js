@@ -7,12 +7,14 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import { domain, clientId } from "../auth_config.json";
 import { Auth0Plugin } from "./libs/auth";
+import Toasted from 'vue-toasted';
 import store from "@/store";
 
 Vue.config.productionTip = false
 
 // Make BootstrapVue available throughout your project
 Vue.use(BootstrapVue)
+Vue.use(Toasted)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
 Vue.use(Auth0Plugin, {

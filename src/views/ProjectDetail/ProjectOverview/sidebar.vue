@@ -22,16 +22,17 @@
       >Cancel</b-button> &nbsp;
       <b-button
           variant="outline-light"
-          @click="() => {
-              $router.push(`/project/${$route.params.projectId}/create`)
-            }"
-      >New request</b-button>
+          @click="createNewRequest"
+      >
+        New request
+      </b-button>
     </div>
   </div>
 </template>
 <script>
 import PageTitle from "../../../components/typography/PageTitle";
-import {getProjectSearchRequests} from '@/graphql/SearchRequest.graphql';
+import {getProjectSearchRequests, newSearchRequest} from '@/graphql/SearchRequest.graphql';
+import {getProjectById} from '@/graphql/Project.graphql'
 import SearchRequestItem from "../../../components/request/SearchRequestItem";
 export default {
   name: 'ProjectDetail',
@@ -51,7 +52,8 @@ export default {
   },
   data: function() {
     return {
-      searchRequests: []
+      searchRequests: [],
+      internalProject: {}
     }
   },
   apollo: {
@@ -64,9 +66,31 @@ export default {
           projectId: this.$route.params.projectId
         }
       }
+    },
+    internalProject: {
+      query: getProjectById,
+      fetchPolicy: 'no-cache',
+      update: data => data.Project[0],
+      variables() {
+        return {
+          projectId: this.$route.params.projectId
+        }
+      }
     }
   },
   methods: {
+    async createNewRequest() {
+      let newRequest = await this.$apollo.mutate({
+        mutation: newSearchRequest,
+        variables: {
+          internalProjectId: this.internalProject.internalId
+        }
+
+      });
+      if (newRequest.data && newRequest.data.insert_SearchRequest) {
+        this.$router.push(`/project/${this.$route.params.projectId}/request/${newRequest.data.insert_SearchRequest.returning[0].id}`)
+      }
+    }
   }
 }
 </script>

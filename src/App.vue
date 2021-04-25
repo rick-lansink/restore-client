@@ -18,7 +18,7 @@ export default {
   @include base-text;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding: 5vh 2vw;
+  padding: 3vh 2vw;
 }
 body {
   overflow: hidden;

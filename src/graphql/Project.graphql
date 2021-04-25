@@ -1,3 +1,14 @@
+query getProjectById($projectId: String!) {
+    Project(where: {
+        projectId: {_eq: $projectId}
+    }) {
+        projectId
+        internalId
+        name
+        dueDate
+    }
+}
+
 mutation createProject($name: String! $due: date!) {
     insert_Project(objects: {
         dueDate: $due,
@@ -12,3 +23,4 @@ mutation createProject($name: String! $due: date!) {
         }
     }
 }
+
