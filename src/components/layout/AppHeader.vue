@@ -22,6 +22,9 @@ export default {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    margin-top: -20px;
+    width: 102%;
+    margin-left: -1%;
     h1 {
       display: inline-block;
       font-weight: 800;

@@ -2,7 +2,7 @@
   <restore-container>
     <div class="restore__container__header">
       <app-header />
-      <page-title>{{ project.name }}</page-title>
+      <page-title>{{ internalProject.name }}</page-title>
     </div>
     <restore-tree-sidebar>
       <router-view
@@ -43,6 +43,7 @@ import viewerApi from "@/viewer/ViewerApi";
 import PageTitle from "../../components/typography/PageTitle";
 import BimViewer from "../../components/viewer/BimViewer";
 import {mapActions, mapGetters} from "vuex";
+import {getProjectById} from '@/graphql/Project.graphql';
 import AppHeader from "../../components/layout/AppHeader";
 export default {
   name: 'ProjectDetail',
@@ -60,7 +61,8 @@ export default {
     return {
       client: null,
       project: {},
-      topData: {}
+      topData: {},
+      internalProject: {}
     }
   },
   computed: {
@@ -70,6 +72,18 @@ export default {
     selectedMaterial() {
       return this.rootMaterials[this.selectedRootMaterialName]
     }
+  },
+  apollo: {
+    internalProject: {
+      query: getProjectById,
+      update: data => data.Project[0],
+      fetchPolicy: 'no-cache',
+      variables() {
+        return {
+          projectId: this.$route.params.projectId
+        }
+      }
+    },
   },
   watch: {
     token: async function(token) {

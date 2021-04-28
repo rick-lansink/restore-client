@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <page-title inverse>Search</page-title>
+      <page-title inverse>Select material or component</page-title>
       <b-tabs pills>
         <b-tab
             class="selector-tab"
@@ -60,13 +60,15 @@
           </ul>
         </b-tab>
       </b-tabs>
-<!--      <div>-->
-<!--        <b-btn class="inverse" variant="link">Cancel</b-btn>-->
-<!--        <b-btn-->
-<!--            variant="outline-light"-->
-<!--            :disabled="!(rootMaterial.selectedMaterial || rootComponent.selectedComponent)"-->
-<!--        >Save</b-btn>-->
-<!--      </div>-->
+      <div>
+        <b-btn
+            class="inverse"
+            variant="link"
+            @click="() => {
+              $router.push(`/project/${$route.params.projectId}/request/${$route.params.requestId}`)
+            }"
+        >Go back</b-btn>
+      </div>
     </div>
   </div>
 </template>
@@ -277,7 +279,7 @@ export default {
 }
 
 .selector-tab {
-  max-height: 65vh;
+  height: 75vh;
   margin-bottom: 20px;
   overflow-y: scroll;
   &::-webkit-scrollbar {

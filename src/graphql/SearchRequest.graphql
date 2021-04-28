@@ -16,6 +16,12 @@ query getProjectSearchRequests($projectId: String!) {
         deliveryFrom
         deliveryUntil
         priority
+        RootComponents {
+            name
+        }
+        RootMaterials {
+            name
+        }
     }
 }
 
@@ -44,6 +50,19 @@ query getSearchRequestById($requestId: uuid!) {
                 dimensionOne dimensionTwo dimensionThree
                 usedBy
             }
+            Properties {
+                id
+            }
+        }
+        RootMaterials {
+            id
+            volume
+            surfaceArea
+            name
+            usedBy
+            Properties {
+                id
+            }
         }
     }
 }
@@ -59,7 +78,45 @@ mutation newSearchRequest($internalProjectId: uuid!) {
     }
 }
 
-mutation setRootComponent($object: [RootComponent_insert_input!]!, $rootHash: String!, $requestId: uuid!, $dimensionSets: [String!]!) {
+mutation updateSearchRequest($requestId: uuid!, $object: SearchRequest_set_input) {
+    update_SearchRequest(where: {
+        id: {_eq: $requestId}
+    }, _set: $object) {
+        affected_rows
+    }
+}
+
+mutation updateSearchRequestStatus($status: String!, $requestId: uuid!) {
+    update_SearchRequest(where: {
+        id: {_eq: $requestId}
+    }, _set: {
+        priority: $status
+    }) {
+        affected_rows
+    }
+}
+
+mutation setRootMaterial($object: [RootMaterial_insert_input!]!, $requestId: uuid!, $objectId: oid!) {
+    insert_RootMaterial(objects: $object, on_conflict: {
+        constraint: RootMaterial_searchRequestId_objectId_key,
+        update_columns: [name]
+    }) {
+        affected_rows
+    }
+    delete_RootMaterial(where: {
+        searchRequestId: {_eq: $requestId},
+        objectId: {_neq: $objectId}
+    }) {
+        affected_rows
+    }
+    delete_RootComponent(where: {
+        searchRequestId: {_eq: $requestId}
+    }) {
+        affected_rows
+    }
+}
+
+mutation setRootComponent($object: [RootComponent_insert_input!]!, $objectId: String!, $requestId: uuid!, $dimensionSets: [String!]!) {
     insert_RootComponent(objects: $object, on_conflict: {
         constraint: RootComponent_searchRequestId_valueHash_key,
         update_columns: [name]
@@ -69,6 +126,11 @@ mutation setRootComponent($object: [RootComponent_insert_input!]!, $rootHash: St
     delete_RootComponent(where: {
         searchRequestId: {_eq: $requestId},
         valueHash: {_neq: $rootHash}
+    }) {
+        affected_rows
+    }
+    delete_RootMaterial(where: {
+        searchRequestId: {_eq: $requestId}
     }) {
         affected_rows
     }

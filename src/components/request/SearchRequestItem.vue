@@ -2,10 +2,19 @@
   <b-row class="search-request">
     <b-col cols="8" md="12" xs="12" class="search-request__body">
       <component-title inverse>
-        {{ searchRequest.name }}
+        {{ searchRequest.name }} ({{searchRequest.dueDate}})
       </component-title>
-      <component-text inverse>
-        This is a short description of the search request or some additional info such as the due date.
+      <component-text v-if="searchRequest.RootComponents.length > 0" inverse>
+        {{ searchRequest.RootComponents[0].name }}
+      </component-text>
+      <component-text v-else-if="searchRequest.RootMaterials.length > 0" inverse>
+        {{ searchRequest.RootMaterials[0].name }}
+      </component-text>
+      <compnent-text v-else inverse>
+        (No material or component has been set for this request)
+      </compnent-text>
+      <component-text inverse v-if="searchRequest.deliveryFrom && searchRequest.deliveryUntil">
+        Delivery between {{searchRequest.deliveryFrom}} and {{searchRequest.deliveryUntil}}
       </component-text>
     </b-col>
     <b-col cols="8" md="12" xs="12">
@@ -19,6 +28,9 @@
     </b-col>
     <b-col cols="12">
       <b-button
+        @click="() => {
+          $router.push(`/project/${$route.params.projectId}/request/${searchRequest.id}`)
+        }"
         variant="outline-light"
       >
         View request
@@ -30,6 +42,7 @@
 <script>
 import ComponentTitle from "../typography/ComponentTitle";
 import ComponentText from "../typography/ComponentText";
+import {updateSearchRequestStatus} from '@/graphql/SearchRequest.graphql';
 export default {
   name: "SearchRequestItem",
   components: {ComponentText, ComponentTitle},
@@ -60,7 +73,19 @@ export default {
       },
       set(value) {
         this.internalSelected = value;
+        this.updateSearchRequestStatus(value);
       }
+    }
+  },
+  methods: {
+    async updateSearchRequestStatus(value) {
+      await this.$apollo.mutate({
+        mutation: updateSearchRequestStatus,
+        variables: {
+          status: value,
+          requestId: this.searchRequest.id
+        }
+      })
     }
   }
 }
@@ -69,6 +94,7 @@ export default {
 <style lang="scss">
 @import "@/assets/styling/colors.scss";
 .search-request {
+  margin-bottom: 20px;
   &__body {
 
   }

@@ -128,12 +128,15 @@ export const useAuth0 = ({redirectUri = window.location.origin,
                 // Initialize our internal authentication state
                 this.isAuthenticated = await this.auth0Client.isAuthenticated();
                 this.user = await this.auth0Client.getUser();
-                const token = await this.getTokenSilently();
-                store.dispatch('auth/setLogin', {
-                    isAuthenticated: this.isAuthenticated,
-                    user: this.user,
-                    token: token
-                })
+                if(this.isAuthenticated) {
+                    const token = await this.getTokenSilently();
+                    store.dispatch('auth/setLogin', {
+                        isAuthenticated: this.isAuthenticated,
+                        user: this.user,
+                        token: token
+                    })
+                }
+
                 this.loading = false;
             }
         }

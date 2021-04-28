@@ -11,6 +11,10 @@
             :search-request="request"
         />
       </b-container>
+      <component-title inverse v-if="searchRequests.length === 0">
+        This project has no search requests yet!
+        Click the button below to create a new request.
+      </component-title>
     </div>
     <div>
       <b-button
@@ -34,9 +38,11 @@ import PageTitle from "../../../components/typography/PageTitle";
 import {getProjectSearchRequests, newSearchRequest} from '@/graphql/SearchRequest.graphql';
 import {getProjectById} from '@/graphql/Project.graphql'
 import SearchRequestItem from "../../../components/request/SearchRequestItem";
+import ComponentTitle from "../../../components/typography/ComponentTitle";
 export default {
   name: 'ProjectDetail',
   components: {
+    ComponentTitle,
     SearchRequestItem,
     PageTitle,
   },

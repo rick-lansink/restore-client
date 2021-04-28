@@ -1,67 +1,7 @@
 <template>
   <div>
     <page-title>Request information</page-title>
-    <div v-if="selectedRootMaterialName">
-      <component-title>
-        {{selectedMaterial.values.materialName}} <b-icon @click="closeCurrentComponent" icon="x-circle-fill" />
-      </component-title>
-      <p>Number of components: {{selectedMaterial.values.usedByQuantity}}</p>
-      <p>Area: {{selectedMaterial.values.surfaceArea.toFixed(2)}} M2</p>
-      <p>Volume: {{selectedMaterial.values.volume.toFixed(2)}} M3</p>
-      <b-btn
-          @click="setRootMaterialOnRequest"
-          variant="outline-dark"
-      >
-        Set material
-      </b-btn>
-    </div>
-    <div
-        v-else-if="rootComponent && rootComponent.dimensionSets && rootComponent.dimensionSets.length > 0"
-        :style="{height: '100%'}"
-    >
-      <component-title>
-        {{ rootComponent.componentName }} <b-icon @click="closeCurrentComponent" icon="x-circle-fill" />
-      </component-title>
-      <div class="table-height-overflow">
-        <b-table
-            v-if="rootComponent.dimensionSets && rootComponent.dimensionSets.length > 0"
-            :items="rootComponent.dimensionSets"
-            :fields="rootComponentFields"
-            :sticky-header="true"
-            :borderless="true"
-            :small="true"
-            :head-variant="'primary-background'"
-            :select-mode="'multi'"
-            ref="componentsTable"
-            selectable
-            @row-selected="onRowSelected"
-        >
-        <template #head(selected)>
-          <b-form-checkbox
-            :checked="selected.length === rootComponent.dimensionSets.length"
-            :indeterminate="selected.length > 0 && selected.length !== rootComponent.dimensionSets.length"
-            @change="selectAll"
-          />
-        </template>
-        <template #cell(selected)="{ rowSelected }">
-          <b-form-checkbox
-              disabled
-              :checked="rowSelected"
-          />
-        </template>
-        </b-table>
-      </div>
-      <br/>
-      <b-btn
-          :disabled="selected.length === 0"
-          variant="outline-dark"
-          @click="setRootComponentOnRequest"
-      >
-        Set components
-      </b-btn>
-    </div>
-    <div v-else>
-
+    <div>
       <div
         v-if="requestComponent"
       >
@@ -71,16 +11,22 @@
           :fields="requestComponentFields"
         />
       </div>
-      <div
-        v-else-if="requestMaterial"
-      >
+      <div v-else-if="requestMaterial">
         <component-title>{{requestMaterial.name}}</component-title>
-        <p>Number of components: {{requestMaterial.usedBy.length}}</p>
-        <p>Area: {{requestMaterial.surfaceArea.toFixed(2)}} M2</p>
-        <p>Volume: {{requestMaterial.volume.toFixed(2)}} M3</p>
-      </div>
-      <div v-else>
-        <p>Set a component or material to view information.</p>
+        <table class="overview-table">
+          <tr>
+            <td><b>Number of components</b></td>
+            <td>{{requestMaterial.usedBy.length}}</td>
+          </tr>
+          <tr>
+            <td><b>Surface area</b></td>
+            <td>{{requestMaterial.surfaceArea.toFixed(2)}} M2</td>
+          </tr>
+          <tr>
+            <td><b>Volume</b></td>
+            <td>{{requestMaterial.volume.toFixed(2)}} M3</td>
+          </tr>
+        </table>
       </div>
       <b-btn variant="outline-dark">
         Delete request
@@ -92,7 +38,7 @@
 
 import PageTitle from "../../../components/typography/PageTitle";
 import ComponentTitle from "../../../components/typography/ComponentTitle";
-import {getSearchRequestById, setRootComponent, setRootMaterial} from '@/graphql/SearchRequest.graphql'
+import {getSearchRequestById, setRootComponent} from '@/graphql/SearchRequest.graphql'
 export default {
   name: 'ProjectDetail',
   components: {
@@ -193,26 +139,15 @@ export default {
   },
   watch: {
     selectedObjects: function(selectedObjects) {
-      if (selectedObjects && selectedObjects.length > 0) {
-        this.$store.dispatch('viewer/setItems', {
-          items: selectedObjects
-        })
-      } else if (this.requestComponent) {
-        this.setRequestComponentItemsXray(this.requestComponent)
-      } else if (this.requestMaterial) {
-        this.setRequestMaterialsItemsXray(this.requestMaterial)
-      } else {
-        this.$store.dispatch('viewer/setItems', {
-          items: []
-        })
-      }
-
+      this.$store.dispatch('viewer/setItems', {
+        items: selectedObjects
+      })
     },
     requestComponent: function(component) {
       this.setRequestComponentItemsXray(component);
     },
     requestMaterial: function(material) {
-      this.setRequestMaterialsItemsXray(material);
+      this.setRequestMaterialItemsXray(material);
     }
   },
   methods: {
@@ -234,11 +169,11 @@ export default {
         })
       }
     },
-    setRequestMaterialsItemsXray(material) {
+    setRequestMaterialItemsXray(material) {
       if (material) {
         this.$store.dispatch('viewer/setItems', {
           items: material.usedBy
-        });
+        })
       }
     },
     dimensionHashToArray(dimensionHash) {
@@ -250,16 +185,6 @@ export default {
       this.$nextTick(() => {
         this.setRequestComponentItemsXray(this.requestComponent)
       })
-    },
-    buildRootMaterialRequestData() {
-      return {
-        searchRequestId: this.searchRequest.id,
-        name: this.selectedMaterial.values.materialName,
-        objectId: this.selectedMaterial.values.oid,
-        volume: this.selectedMaterial.values.volume,
-        surfaceArea: this.selectedMaterial.values.surfaceArea,
-        usedBy: this.selectedMaterial.values.usedBy.map(object => object.globalId)
-      }
     },
     buildRootComponentRequestData() {
       return {
@@ -284,30 +209,8 @@ export default {
         }
       }
     },
-    async setRootMaterialOnRequest() {
-      if (this.requestComponent || this.requestMaterial) {
-        this.$toasted.error('Changing the material will overwrite the properties for this request. Are you sure you want to do this?', {
-          action: [
-            {
-              text: 'Cancel',
-              onClick: (_, toastObject) => {
-                toastObject.goAway(0);
-              }
-            }, {
-              text: 'Set new',
-              onClick: async (_, toastObject) => {
-                toastObject.goAway(0);
-                await this.rootMaterialRequest();
-              }
-            }
-          ]
-        })
-      } else {
-        await this.rootMaterialRequest()
-      }
-    },
     async setRootComponentOnRequest() {
-      if (this.requestComponent || this.requestMaterial) {
+      if (this.requestComponent) {
         this.$toasted.error('Changing the component will overwrite the properties for this request. Are you sure you want to do this?', {
           action: [
             {
@@ -328,19 +231,6 @@ export default {
       } else {
         await this.rootComponentRequest();
       }
-    },
-    async rootMaterialRequest() {
-      let response = await this.$apollo.mutate({
-        mutation: setRootMaterial,
-        variables: {
-          object: this.buildRootMaterialRequestData(),
-          requestId: this.searchRequest.id,
-          objectId: this.selectedMaterial.values.oid
-        }
-      });
-      this.$apollo.queries.searchRequest.refresh();
-      this.$toasted.info('Search request material updated');
-      return response;
     },
     async rootComponentRequest() {
       let response = await this.$apollo.mutate({

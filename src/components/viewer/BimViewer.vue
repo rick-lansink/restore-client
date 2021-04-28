@@ -193,7 +193,9 @@ export default {
         this.viewer.cameraFlight.fit = true;
         this.viewer.cameraFlight.fitFOV = 55;
         this.viewer.cameraFlight.jumpTo(this.model);
-        this.updateViewerSelection();
+        if (this.selectedItems.length > 0) {
+          this.updateViewerSelection();
+        }
       });
 
       this.model.on("error", (errMsg) => {

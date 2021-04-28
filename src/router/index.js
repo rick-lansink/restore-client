@@ -7,6 +7,8 @@ import Create from "../views/Projects/Create";
 import ProjectDetail from '../views/ProjectDetail/index';
 import RequestSelectSide from "../views/ProjectDetail/RequestSelect/sidebar";
 import RequestSelectTop from '../views/ProjectDetail/RequestSelect/top';
+import RequestOverviewSide from "../views/ProjectDetail/RequestOverview/sidebar";
+import RequestOverviewTop from '../views/ProjectDetail/RequestOverview/top';
 import AttachOAuth from "../views/Projects/AttachOAuth";
 import ProjectOverviewSidebar from "../views/ProjectDetail/ProjectOverview/sidebar";
 import ProjectOverviewTop from '../views/ProjectDetail/ProjectOverview/top';
@@ -51,9 +53,15 @@ const routes = [
         }, {
           path :'request/:requestId',
           components: {
-            sidebar: RequestSelectSide,
-            topview: RequestSelectTop
-          }
+            sidebar: RequestOverviewSide,
+            topview: RequestOverviewTop
+          },
+      }, {
+        path: 'request/:requestId/material_component',
+        components: {
+          sidebar: RequestSelectSide,
+          topview: RequestSelectTop
+        }
       }
     ]
   }
