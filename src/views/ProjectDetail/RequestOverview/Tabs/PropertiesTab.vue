@@ -25,7 +25,7 @@
         <b-form-group
           v-for="property in savedProperties"
           :key="property.id"
-          :label="`${property.propertySet.toProperCase()} ${property.propertyKey.toProperCase()} ${property.fromModel ? '(Imported from model)' : ''}`"
+          :label="`${property.propertyKey.toProperCase()} ${property.fromModel ? '(Imported from model)' : ''}`"
           :description="property.predefinedPropertyId ? property.PredefinedProperty.propertyDescription : ''"
           class="inverted property"
         >
@@ -33,6 +33,8 @@
             :id="property.id"
             v-model="property.propertyValue"
             :type="property.predefinedPropertyId ? property.PredefinedProperty.valueType : 'text'"
+            :step="0.01"
+            :min="0.00"
             :plaintext="property.fromModel"
           />
           <b-icon
@@ -56,8 +58,9 @@
 import viewerApi from "@/viewer/ViewerApi";
 import Multiselect from 'vue-multiselect'
 import {getSearchRequestById} from '@/graphql/SearchRequest.graphql';
-import {restoreProperties, newProperty, deleteProperty} from '@/graphql/Property.graphql';
+import {restoreProperties, newProperty, upsertProperties, deleteProperty} from '@/graphql/Property.graphql';
 import ComponentTitle from "../../../../components/typography/ComponentTitle";
+import LowLevelApi from "@/libs/LowLevelApi";
 
 String.prototype.toProperCase = function () {
   return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
@@ -82,8 +85,9 @@ export default {
   data: function() {
     return {
       selectedProperty: null,
+      lowLevelApi: {},
       rawPropertiesArray: [],
-      rawRestoreProperties: [],
+      predefinedProperties: [],
       rawProperties: {},
       searchRequest: {},
       hasRootComponent: false,
@@ -111,7 +115,7 @@ export default {
         }
       }
     },
-    rawRestoreProperties: {
+    predefinedProperties: {
       query: restoreProperties,
       update: data => data.PredefinedProperty,
       fetchPolicy: 'no-cache'
@@ -123,6 +127,14 @@ export default {
     },
     requestComponent() {
       return this.searchRequest.RootComponents[0];
+    },
+    objectIds() {
+      if (this.hasRootComponent) {
+        return this.searchRequest.RootComponents[0].Properties;
+      } else if (this.hasRootMaterial) {
+        return this.searchRequest.RootMaterials[0].usedBy;
+      }
+      return [];
     },
     properties() {
       let groupedProperties = [];
@@ -154,7 +166,7 @@ export default {
     },
     restoreProperties() {
       let groupedProperties = [];
-      this.rawRestoreProperties.map((property) => {
+      this.predefinedProperties.map((property) => {
         const existingPropertySet = groupedProperties.find(p => p.name === property.propertyKey);
         if (existingPropertySet) {
           existingPropertySet.properties.push({
@@ -177,7 +189,7 @@ export default {
     },
     combinedProperties() {
       return [
-          ...this.properties, ...this.restoreProperties
+          ...this.restoreProperties, ...this.properties
       ]
     },
     savedProperties() {
@@ -187,6 +199,11 @@ export default {
         return this.searchRequest.RootMaterials[0].Properties;
       }
       return [];
+    }
+  },
+  mounted() {
+    if (this.client) {
+      this.lowLevelApi = new LowLevelApi(this.client);
     }
   },
   watch: {
@@ -203,17 +220,23 @@ export default {
       if (this.hasRootMaterial) {
         let selectedItem = items[this.requestMaterial.name];
         let filteredProperties = Object.keys(selectedItem.values.properties).filter((key) => {
-          return selectedItem.values.properties[key].length > 0;
+          return (selectedItem.values.properties[key] && selectedItem.values.properties[key][0]) &&
+              selectedItem.values.properties[key][0].length > 0;
         })
         this.rawPropertiesArray = filteredProperties;
         this.rawProperties = selectedItem.values.properties;
       }
     },
     'rootComponent.items': function(items) {
-      if (this.hasRootComponent) {
-        let selectedItem = items[this.requestComponent.type].find((item) => {
+      if (this.hasRootComponent && items[this.requestComponent.type] && items[this.requestComponent.type].values) {
+        let selectedItem = items[this.requestComponent.type].values.children.find((item) => {
           return item.valueHash === this.requestComponent.valueHash;
         });
+        let filteredProperties = Object.keys(selectedItem.inheritedProperties).filter((key) => {
+          return selectedItem.inheritedProperties[key] && selectedItem.inheritedProperties[key][0] &&
+              selectedItem.inheritedProperties[key][0].length > 0
+        })
+        this.rawPropertiesArray = filteredProperties;
         this.rawProperties = selectedItem.inheritedProperties;
       }
     }
@@ -306,7 +329,7 @@ export default {
       await this.createNewProperty(propertyObject);
     },
     async addRestoreProperty() {
-      const restoreProperty = this.rawRestoreProperties.find((prop) => {
+      const restoreProperty = this.predefinedProperties.find((prop) => {
         return prop.propertySet === this.selectedProperty.propertySet && prop.propertyKey === this.selectedProperty.name;
       });
       const propertyObject = {
@@ -340,8 +363,31 @@ export default {
       });
       this.$apollo.queries.searchRequest.refresh();
     },
+    cleanSavedProperties(properties) {
+      return [...properties].filter(p => !p.fromModel).map((property) => {
+        delete property.__typename;
+        delete property.PredefinedProperty
+        return property
+      });
+    },
     async saveProperties(e) {
       e.preventDefault();
+      await this.$apollo.mutate({
+        mutation: upsertProperties,
+        variables: {
+          properties: this.cleanSavedProperties(this.savedProperties)
+        }
+      });
+      // await this.lowLevelApi.startTransaction(this.project.oid);
+      // let requests = this.cleanSavedProperties(this.savedProperties).map((property) => {
+      //   return this.lowLevelApi.setPropertyForObjects(
+      //       property.propertyKey, property.propertyValue, 'double', this.objectIds, this.project.lastRevisionId
+      //   );
+      // });
+      // await Promise.all(requests);
+      // await this.lowLevelApi.commitTransaction();
+
+
     }
   }
 }
@@ -361,9 +407,7 @@ export default {
   &--remove-button {
     position: absolute;
     right: 20px;
-    top: 0;
-    bottom: 0;
-    margin: auto 0;
+    top: 14px;
     cursor: pointer;
   }
 }

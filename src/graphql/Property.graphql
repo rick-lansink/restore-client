@@ -24,3 +24,12 @@ mutation deleteProperty($propertyId: uuid!) {
         id
     }
 }
+
+mutation upsertProperties($properties: [Property_insert_input!]!) {
+    insert_Property(objects: $properties, on_conflict: {
+        constraint: Property_pkey,
+        update_columns: [propertyValue]
+    }) {
+        affected_rows
+    }
+}
