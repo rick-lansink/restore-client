@@ -51,7 +51,10 @@ query getSearchRequestById($requestId: uuid!) {
                 usedBy
             }
             Properties {
-                id
+                id propertySet propertyKey propertyValue fromModel predefinedPropertyId
+                PredefinedProperty {
+                    valueType valueUnit propertyDescription
+                }
             }
         }
         RootMaterials {
@@ -61,7 +64,10 @@ query getSearchRequestById($requestId: uuid!) {
             name
             usedBy
             Properties {
-                id
+                id propertySet propertyKey propertyValue fromModel predefinedPropertyId
+                PredefinedProperty {
+                    valueType valueUnit propertyDescription
+                }
             }
         }
     }

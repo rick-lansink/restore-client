@@ -128,7 +128,7 @@ export default {
 .form-group.inverted {
   margin-top: 10px;
   color: $inverse-text-color;
-  label.d-block {
+  label.d-block, legend.col-form-label {
     color: $inverse-text-color !important;
     font-weight: bold;
   }
@@ -138,6 +138,10 @@ export default {
     &.text-muted {
       color: $inverse-text-color !important;
     }
+  }
+  .form-control-plaintext {
+    color: $inverse-text-color !important;
+    font-size: 14px;
   }
   textarea.form-control {
     background-color: rgba(0,0,0,0);

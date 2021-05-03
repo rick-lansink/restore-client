@@ -1,0 +1,26 @@
+query restoreProperties {
+    PredefinedProperty {
+        id
+        propertySet
+        propertyKey
+        propertyType
+        valueType
+        valueUnit
+        propertyDescription
+    }
+}
+
+mutation newProperty($property: [Property_insert_input!]!) {
+    insert_Property(objects: $property, on_conflict: {
+        constraint: Property_pkey,
+        update_columns: []
+    }) {
+        affected_rows
+    }
+}
+
+mutation deleteProperty($propertyId: uuid!) {
+    delete_Property_by_pk(id: $propertyId) {
+        id
+    }
+}
