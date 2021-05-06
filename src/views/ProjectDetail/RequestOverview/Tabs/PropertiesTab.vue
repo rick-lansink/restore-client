@@ -8,6 +8,9 @@
             :options="combinedProperties"
             :group-values="'properties'"
             :group-label="'name'"
+            :custom-label="(label) => {
+              return label.name ? label.name.split(/(?=[A-Z])/).join(' ') : ''
+            }"
             track-by="name"
             label="name"
         />
@@ -25,17 +28,35 @@
         <b-form-group
           v-for="property in savedProperties"
           :key="property.id"
-          :label="`${property.propertyKey.toProperCase()} ${property.fromModel ? '(Imported from model)' : ''}`"
-          :description="property.predefinedPropertyId ? property.PredefinedProperty.propertyDescription : ''"
+          :label="`${property.propertyKey.split(/(?=[A-Z])/).join(' ').toProperCase()} ${property.fromModel ? '(Imported from model)' : ''}`"
+          :description="property.PredefinedProperty ? property.PredefinedProperty.propertyDescription : ''"
           class="inverted property"
         >
           <b-form-input
+            v-if="property.PredefinedProperty && ['text', 'number', 'email', 'password', 'search', 'url', 'tek', 'date', 'time', 'range'].includes(property.PredefinedProperty.valueType)"
             :id="property.id"
             v-model="property.propertyValue"
             :type="property.predefinedPropertyId ? property.PredefinedProperty.valueType : 'text'"
             :step="0.01"
             :min="0.00"
             :plaintext="property.fromModel"
+          />
+          <b-checkbox
+            v-else-if="property.PredefinedProperty && property.PredefinedProperty.valueType === 'boolean'"
+            :id="property.id"
+            v-model="property.propertyValue"
+            :unchecked-value="false"
+            :value="true"
+            switch
+          />
+          <b-form-input
+              v-else
+              :id="property.id"
+              v-model="property.propertyValue"
+              type="text"
+              :step="0.01"
+              :min="0.00"
+              :plaintext="property.fromModel"
           />
           <b-icon
               icon="x-circle"
@@ -118,7 +139,13 @@ export default {
     predefinedProperties: {
       query: restoreProperties,
       update: data => data.PredefinedProperty,
-      fetchPolicy: 'no-cache'
+      fetchPolicy: 'no-cache',
+      variables() {
+        return {
+          requestUnit: this.apolloRequestUnit,
+          componentType: this.apolloComponentType
+        }
+      }
     }
   },
   computed: {
@@ -127,6 +154,13 @@ export default {
     },
     requestComponent() {
       return this.searchRequest.RootComponents[0];
+    },
+    apolloRequestUnit() {
+      return this.searchRequest.unitOfMeasurement ? this.searchRequest.unitOfMeasurement : 'NONE'
+    },
+    apolloComponentType() {
+      return this.searchRequest.RootComponents && this.searchRequest.RootComponents[0]
+          ? this.searchRequest.RootComponents[0].type : 'NONE'
     },
     objectIds() {
       if (this.hasRootComponent) {
@@ -141,7 +175,8 @@ export default {
       this.rawPropertiesArray.filter((property) => {
         const splitPropertyNameArray = property.split('__');
         const savedProperty = this.savedProperties.find(p => {
-          return p.propertySet === splitPropertyNameArray[0] && p.propertyKey === splitPropertyNameArray[1];
+          return p.propertySet.toLowerCase()  === splitPropertyNameArray[0].toLowerCase()
+              && p.propertyKey.toLowerCase()  === splitPropertyNameArray[1].toLowerCase() ;
         });
         return !savedProperty;
       }).map((property) => {
@@ -166,8 +201,14 @@ export default {
     },
     restoreProperties() {
       let groupedProperties = [];
-      this.predefinedProperties.map((property) => {
-        const existingPropertySet = groupedProperties.find(p => p.name === property.propertyKey);
+      this.predefinedProperties.filter((property) => {
+        const savedProperty = this.savedProperties.find(p => {
+          return p.propertySet.toLowerCase() === property.propertySet.toLowerCase()
+              && p.propertyKey.toLowerCase()  === property.propertyKey.toLowerCase() ;
+        });
+        return !savedProperty;
+      }).map((property) => {
+        const existingPropertySet = groupedProperties.find(p => p.name === property.propertySet);
         if (existingPropertySet) {
           existingPropertySet.properties.push({
             name: property.propertyKey,
@@ -188,8 +229,26 @@ export default {
       return groupedProperties;
     },
     combinedProperties() {
+      let modelProperties = [...this.properties];
+      let restoreProperties = this.restoreProperties.map((propertySet) => {
+        let modelPropertySet = modelProperties.find((p) => p.name.toLowerCase() === propertySet.name.toLowerCase());
+        if (modelPropertySet) {
+          propertySet.properties = propertySet.properties.map((property) => {
+            let modelProperty = modelPropertySet.properties.find((p) => p.name.toLowerCase() === property.name.toLowerCase());
+            if (modelProperty) {
+              return modelProperty
+            } else {
+              return property;
+            }
+          });
+        }
+        return propertySet;
+      })
       return [
-          ...this.restoreProperties, ...this.properties
+          ...restoreProperties, ...this.properties.filter((pset) => {
+            let restorePset = restoreProperties.find((rPset) => rPset.name === pset.name);
+            return !restorePset;
+        })
       ]
     },
     savedProperties() {
@@ -364,9 +423,10 @@ export default {
       this.$apollo.queries.searchRequest.refresh();
     },
     cleanSavedProperties(properties) {
-      return [...properties].filter(p => !p.fromModel).map((property) => {
+      return JSON.parse(JSON.stringify([...properties])).filter(p => !p.fromModel).map((property) => {
         delete property.__typename;
         delete property.PredefinedProperty
+        property.propertyValue = `${property.propertyValue}`
         return property
       });
     },
@@ -378,6 +438,10 @@ export default {
           properties: this.cleanSavedProperties(this.savedProperties)
         }
       });
+      this.$toasted.info('Search request properties updated', {
+        duration: 5000
+      })
+      this.$apollo.queries.predefinedProperties.refresh();
       // await this.lowLevelApi.startTransaction(this.project.oid);
       // let requests = this.cleanSavedProperties(this.savedProperties).map((property) => {
       //   return this.lowLevelApi.setPropertyForObjects(

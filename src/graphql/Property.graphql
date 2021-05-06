@@ -1,5 +1,19 @@
-query restoreProperties {
-    PredefinedProperty {
+query restoreProperties($requestUnit: String, $componentType: String) {
+    PredefinedProperty(where: {
+        _and: [
+            {
+                _or: [
+                    {valueUnit: {_eq: $requestUnit}},
+                    {valueUnit: {_is_null: true}},
+                ]
+            }, {
+                _or: [
+                    {propertyType: {_eq: $componentType}},
+                    {propertyType: {_is_null: true}}
+                ]
+            }
+        ]
+    }) {
         id
         propertySet
         propertyKey

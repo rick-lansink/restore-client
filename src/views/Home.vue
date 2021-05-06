@@ -21,6 +21,13 @@ export default {
     logout() {
       this.$store.dispatch('auth/logout')
     }
+  },
+  watch: {
+    '$auth.isAuthenticated': function(authenticated) {
+      if (authenticated) {
+        this.$router.push('/projects')
+      }
+    }
   }
 }
 </script>

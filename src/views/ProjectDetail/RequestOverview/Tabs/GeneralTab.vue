@@ -47,16 +47,33 @@
         ) ? 'Change material' : 'Set material'}}
         </b-btn>
       </b-form-group>
-      <b-form-group
-          class="inverted"
-          description="Set a due date for when this request should be finished"
-      >
-        <label class="d-block" for="form-request-duedate">Due date</label>
-        <b-form-datepicker
-            id="form-request-duedate"
-            v-model="searchRequest.dueDate"
-        />
-      </b-form-group>
+      <b-row>
+        <b-col>
+          <b-form-group
+            class="inverted"
+            description="Set to which kind of unit should be searched on"
+          >
+            <label class="d-block" for="form-request-unit">Unit of measurement</label>
+            <b-form-select
+              id="form-request-unit"
+              v-model="searchRequest.unitOfMeasurement"
+              :options="unitOptions"
+            />
+          </b-form-group>
+        </b-col>
+        <b-col>
+          <b-form-group
+              class="inverted"
+              description="Set a due date for when this request should be finished"
+          >
+            <label class="d-block" for="form-request-duedate">Due date</label>
+            <b-form-datepicker
+                id="form-request-duedate"
+                v-model="searchRequest.dueDate"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
       <b-row>
         <b-col>
           <b-form-group
@@ -122,6 +139,28 @@ export default {
       }
     },
   },
+  computed: {
+    unitOptions() {
+      if (this.searchRequest && this.searchRequest.RootComponents && this.searchRequest.RootComponents.length > 0) {
+        return [
+          {value: null, text: 'Select a unit'},
+          {value: 'm2', text: 'Surface area (m2)'},
+          {value: 'm3', text: 'Volume (m3)'},
+          {value: 'dimensions', text: 'Dimensions (width, height, depth)'}
+        ]
+      } else if (this.searchRequest && this.searchRequest.RootMaterials && this.searchRequest.RootMaterials.length > 0) {
+        return [
+          {value: null, text: 'Select a unit'},
+          {value: 'm2', text: 'surface area (m2)'},
+          {value: 'm3', text: 'volume (m3)'},
+        ]
+      } else {
+        return [
+          {value: null, text: 'Please first set a material or component'},
+        ]
+      }
+    }
+  },
   methods: {
     async saveRequest(event) {
       event.preventDefault();
@@ -134,7 +173,9 @@ export default {
             object: updateRequest
           }
         });
-        this.$toasted.info('Search request updated');
+        this.$toasted.info('Search request updated', {
+          duration: 5000
+        });
         this.$apollo.queries.searchRequest.refresh();
       }
     },

@@ -16,6 +16,7 @@ query getProjectSearchRequests($projectId: String!) {
         deliveryFrom
         deliveryUntil
         priority
+        unitOfMeasurement
         RootComponents {
             name
         }
@@ -39,6 +40,7 @@ query getSearchRequestById($requestId: uuid!) {
         deliveryFrom
         deliveryUntil
         priority
+        unitOfMeasurement
         RootComponents {
             id
             valueHash
@@ -49,6 +51,8 @@ query getSearchRequestById($requestId: uuid!) {
                 dimensionHash
                 dimensionOne dimensionTwo dimensionThree
                 usedBy
+                volume
+                surfaceArea
             }
             Properties {
                 id propertySet propertyKey propertyValue fromModel predefinedPropertyId

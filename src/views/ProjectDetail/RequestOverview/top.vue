@@ -9,6 +9,9 @@
         <b-table
           :items="requestComponent.DimensionSets"
           :fields="requestComponentFields"
+          :sticky-header="true"
+          :borderless="true"
+          :head-variant="'primary-background'"
         />
       </div>
       <div v-else-if="requestMaterial">
@@ -63,21 +66,6 @@ export default {
   },
   data: function() {
     return {
-      rootComponentFields: [{
-        key: 'selected',
-        label: ''
-      }, {
-        key: 'dimensionHash',
-        label: 'Dimensions',
-        formatter: (dimensionHash) => {
-          const dimensionArray = dimensionHash.replace(/^\[|\]$/g, "").split(', ');
-          return `${dimensionArray[0]}m x ${dimensionArray[1]}m x ${dimensionArray[2]}m`
-        }
-      }, {
-        key: 'usedByObjects',
-        label: 'Number of items',
-        formatter: (objects) => objects.length
-      }],
       requestComponentFields: [{
           key: 'dimensionHash',
           label: 'Dimensions',
@@ -86,6 +74,18 @@ export default {
             return `${dimensionArray[0]}m x ${dimensionArray[1]}m x ${dimensionArray[2]}m`
           }
         }, {
+        key: 'surfaceArea',
+        label: 'Surface area',
+        formatter: (area) => {
+          return `${area.toFixed(2)} M2`
+        }
+      }, {
+        key: 'volume',
+        label: 'Volume',
+        formatter: (volume) => {
+          return volume.toFixed(2) > 0.00 ? `${volume.toFixed(2)} M3` : 'N/A'
+        }
+      },{
           key: 'usedBy',
           label: 'Number of items',
           formatter: (objects) => objects.length
@@ -243,7 +243,9 @@ export default {
         }
       });
       this.$apollo.queries.searchRequest.refresh();
-      this.$toasted.info('Search request component updated');
+      this.$toasted.info('Search request component updated', {
+        duration: 5000
+      });
       return response;
     }
   }

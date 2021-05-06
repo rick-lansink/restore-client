@@ -2,7 +2,8 @@
   <b-row class="search-request">
     <b-col cols="8" md="12" xs="12" class="search-request__body">
       <component-title inverse>
-        {{ searchRequest.name }} ({{searchRequest.dueDate}})
+        {{ searchRequest.name }}
+        <span v-if="searchRequest.dueDate">({{searchRequest.dueDate}})</span>
       </component-title>
       <component-text v-if="searchRequest.RootComponents.length > 0" inverse>
         {{ searchRequest.RootComponents[0].name }}
@@ -10,9 +11,9 @@
       <component-text v-else-if="searchRequest.RootMaterials.length > 0" inverse>
         {{ searchRequest.RootMaterials[0].name }}
       </component-text>
-      <compnent-text v-else inverse>
+      <component-text inverse v-else>
         (No material or component has been set for this request)
-      </compnent-text>
+      </component-text>
       <component-text inverse v-if="searchRequest.deliveryFrom && searchRequest.deliveryUntil">
         Delivery between {{searchRequest.deliveryFrom}} and {{searchRequest.deliveryUntil}}
       </component-text>

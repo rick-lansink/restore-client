@@ -2,10 +2,19 @@ query userProjects {
     Project {
         projectId
         dueDate
+        created_at
         name
         SearchRequests {
             id
             name
+            created_at
+            updated_at
+            dueDate
+            extraRequirements
+            extraWishes
+            deliveryFrom
+            deliveryUntil
+            priority
         }
     }
 }

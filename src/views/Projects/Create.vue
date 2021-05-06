@@ -1,5 +1,6 @@
 <template>
   <div>
+    <app-header />
     <b-progress :value="formStep" :max="3" />
     <br/>
     <b-card>
@@ -46,9 +47,10 @@
 import PageTitle from "../../components/typography/PageTitle";
 import viewerApi from '../../viewer/ViewerApi';
 import {createProject} from "@/graphql/Project.graphql";
+import AppHeader from "../../components/layout/AppHeader";
 export default {
 name: "Create",
-  components: {PageTitle},
+  components: {AppHeader, PageTitle},
   data: function() {
     return {
       form: {

@@ -24,3 +24,11 @@ mutation createProject($name: String! $due: date!) {
     }
 }
 
+mutation updateProject($projectId: String!, $name: String!, $due: date!) {
+    update_Project(where: {projectId: {_eq: $projectId}}, _set: {
+        dueDate: $due,
+        name: $name
+    }) {
+        affected_rows
+    }
+}

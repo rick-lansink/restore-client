@@ -7,7 +7,7 @@
       </component-title>
       <p>Number of components: {{selectedMaterial.values.usedByQuantity}}</p>
       <p>Area: {{selectedMaterial.values.surfaceArea.toFixed(2)}} M2</p>
-      <p>Volume: {{selectedMaterial.values.volume.toFixed(2)}} M3</p>
+      <p>Volume: {{!isNaN(selectedMaterial.values.volume) ? selectedMaterial.values.volume.toFixed(2) : 'N/A' }} M3</p>
       <b-btn
           @click="setRootMaterialOnRequest"
           variant="outline-dark"
@@ -29,7 +29,6 @@
             :fields="rootComponentFields"
             :sticky-header="true"
             :borderless="true"
-            :small="true"
             :head-variant="'primary-background'"
             :select-mode="'multi'"
             ref="componentsTable"
@@ -69,6 +68,9 @@
         <b-table
           :items="requestComponent.DimensionSets"
           :fields="requestComponentFields"
+          :sticky-header="true"
+          :borderless="true"
+          :head-variant="'primary-background'"
         />
       </div>
       <div
@@ -128,6 +130,18 @@ export default {
           return `${dimensionArray[0]}m x ${dimensionArray[1]}m x ${dimensionArray[2]}m`
         }
       }, {
+        key: 'totalSurfaceArea',
+        label: 'Surface area',
+        formatter: (area) => {
+          return `${area.toFixed(2)} M2`
+        }
+      }, {
+        key: 'totalVolume',
+        label: 'Volume',
+        formatter: (volume) => {
+          return volume.toFixed(2) > 0.00 ? `${volume.toFixed(2)} M3` : 'N/A'
+        }
+      }, {
         key: 'usedByObjects',
         label: 'Number of items',
         formatter: (objects) => objects.length
@@ -140,6 +154,18 @@ export default {
             return `${dimensionArray[0]}m x ${dimensionArray[1]}m x ${dimensionArray[2]}m`
           }
         }, {
+        key: 'surfaceArea',
+        label: 'Surface area',
+        formatter: (area) => {
+          return `${area.toFixed(2)} M2`
+        }
+      }, {
+        key: 'volume',
+        label: 'Volume',
+        formatter: (volume) => {
+          return volume.toFixed(2) > 0.00 ? `${volume.toFixed(2)} M3` : 'N/A'
+        }
+      }, {
           key: 'usedBy',
           label: 'Number of items',
           formatter: (objects) => objects.length
@@ -274,6 +300,8 @@ export default {
               dimensionOne: this.dimensionHashToArray(dSet.dimensionHash)[0],
               dimensionTwo: this.dimensionHashToArray(dSet.dimensionHash)[1],
               dimensionThree: this.dimensionHashToArray(dSet.dimensionHash)[2],
+              surfaceArea: dSet.totalSurfaceArea,
+              volume: dSet.totalVolume,
               usedBy: dSet.usedByObjects
             }
           })],
@@ -339,7 +367,9 @@ export default {
         }
       });
       this.$apollo.queries.searchRequest.refresh();
-      this.$toasted.info('Search request material updated');
+      this.$toasted.info('Search request material updated', {
+        duration: 5000
+      });
       return response;
     },
     async rootComponentRequest() {
@@ -353,7 +383,9 @@ export default {
         }
       });
       this.$apollo.queries.searchRequest.refresh();
-      this.$toasted.info('Search request component updated');
+      this.$toasted.info('Search request component updated', {
+        duration: 5000
+      });
       return response;
     }
   }

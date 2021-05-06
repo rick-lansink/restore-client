@@ -1,42 +1,53 @@
 <template>
-  <b-card>
-    <page-title>My projects</page-title>
-    <b-table
-        hover
-        show-empty
-        :items="projects"
-        :fields="fields"
-    >
-      <template #cell(show_details)="row">
-        <b-icon
-            @click="row.toggleDetails"
-            :icon="row.detailsShowing ? 'caret-up' : 'caret-down'" />
-      </template>
-      <template #cell(actions)="row">
-        <b-button
-            variant="primary"
-            @click="$router.push(`/project/${row.item.projectId}/overview`)"
-        >View project</b-button>
-      </template>
-      <template #empty>
-        <p>It looks like no BIMServer projects have been configured yet</p>
-      </template>
-      <template #row-details="row">
-        <b-card>
-          <search-requests-subtable
-            :search-requests="row.item.searchRequests"
-            :parent-id="row.item.projectId"
-          />
-        </b-card>
-      </template>
-    </b-table>
-    <b-button
-        variant="primary"
-        @click="() => {
+  <div>
+    <app-header />
+    <b-card style="margin-top: 10px; overflow-y: scroll; max-height: 90vh;">
+      <page-title>My projects</page-title>
+      <b-table
+          hover
+          show-empty
+          :items="projects"
+          :fields="fields"
+          style="table-layout: fixed; max-height: 73vh;"
+      >
+        <template #cell(show_details)="row">
+          <b-icon
+              @click="row.toggleDetails"
+              :icon="row.detailsShowing ? 'caret-up' : 'caret-down'" />
+        </template>
+        <template #cell(actions)="row">
+          <b-button
+              variant="primary"
+              @click="$router.push(`/project/${row.item.projectId}/overview`)"
+          >Go to project</b-button>
+          <b-button
+              variant="link"
+              @click="$router.push(`/projects/${row.item.projectId}/edit`)"
+          >
+            Edit
+          </b-button>
+        </template>
+        <template #empty>
+          <p>It looks like no BIMServer projects have been configured yet</p>
+        </template>
+        <template #row-details="row">
+          <b-card>
+            <search-requests-subtable
+                :search-requests="row.item.SearchRequests"
+                :project="row.item"
+                :parent-id="row.item.projectId"
+            />
+          </b-card>
+        </template>
+      </b-table>
+      <b-button
+          variant="primary"
+          @click="() => {
           $router.push('/projects/create')
         }"
-    >Create new project</b-button>
-  </b-card>
+      >Create new project</b-button>
+    </b-card>
+  </div>
 </template>
 
 <script>
@@ -46,9 +57,11 @@ import PageTitle from "../../components/typography/PageTitle";
 import { userProjects } from '@/graphql/BimOAuth.graphql';
 import {mapActions} from "vuex";
 import SearchRequestsSubtable from "./SearchRequestsSubtable";
+import AppHeader from "../../components/layout/AppHeader";
 export default {
   name: 'Home',
   components: {
+    AppHeader,
     SearchRequestsSubtable,
     PageTitle
   },

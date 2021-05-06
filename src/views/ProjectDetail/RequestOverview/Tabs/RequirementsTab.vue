@@ -68,7 +68,9 @@ export default {
             object: updateRequest
           }
         });
-        this.$toasted.info('Search request updated');
+        this.$toasted.info('Search request updated', {
+          duration: 5000
+        });
         this.$apollo.queries.searchRequest.refresh();
       }
     },
