@@ -4,9 +4,11 @@ query userProjects {
         dueDate
         created_at
         name
+        isPublic
         SearchRequests {
             id
             name
+            isPublic
             created_at
             updated_at
             dueDate

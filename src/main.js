@@ -9,12 +9,14 @@ import { domain, clientId } from "../auth_config.json";
 import { Auth0Plugin } from "./libs/auth";
 import Toasted from 'vue-toasted';
 import store from "@/store";
+import VueClipboard from 'vue-clipboard2'
 
 Vue.config.productionTip = false
 
 // Make BootstrapVue available throughout your project
 Vue.use(BootstrapVue)
 Vue.use(Toasted)
+Vue.use(VueClipboard)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
 Vue.use(Auth0Plugin, {

@@ -32,15 +32,35 @@
           :description="property.PredefinedProperty ? property.PredefinedProperty.propertyDescription : ''"
           class="inverted property"
         >
-          <b-form-input
-            v-if="property.PredefinedProperty && ['text', 'number', 'email', 'password', 'search', 'url', 'tek', 'date', 'time', 'range'].includes(property.PredefinedProperty.valueType)"
-            :id="property.id"
-            v-model="property.propertyValue"
-            :type="property.predefinedPropertyId ? property.PredefinedProperty.valueType : 'text'"
-            :step="0.01"
-            :min="0.00"
-            :plaintext="property.fromModel"
-          />
+          <b-input-group
+              v-if="property.PredefinedProperty && ['text', 'number', 'email', 'password', 'search', 'url', 'tek', 'date', 'time', 'range'].includes(property.PredefinedProperty.valueType)"
+          >
+            <b-input-group-prepend
+                v-if="property.predefinedPropertyId && property.PredefinedProperty.valuePrefix"
+                class="border-right-0"
+            >
+              <b-input-group-text class="bg-transparent font-weight-bold">
+                {{ property.PredefinedProperty.valuePrefix }}
+              </b-input-group-text>
+            </b-input-group-prepend>
+            <b-form-input
+                :id="property.id"
+                v-model="property.propertyValue"
+                :type="property.predefinedPropertyId ? property.PredefinedProperty.valueType : 'text'"
+                :step="0.01"
+                :min="0.00"
+                :plaintext="property.fromModel"
+                :class="{
+              'border-right-0': (property.predefinedPropertyId && property.PredefinedProperty.valueSuffix),
+              'border-left-0': (property.predefinedPropertyId && property.PredefinedProperty.valuePrefix)
+            }"
+            />
+            <b-input-group-append v-if="property.predefinedPropertyId && property.PredefinedProperty.valueSuffix">
+              <b-input-group-text class="bg-transparent font-weight-bold">
+                {{ property.PredefinedProperty.valueSuffix }}
+              </b-input-group-text>
+            </b-input-group-append>
+          </b-input-group>
           <b-checkbox
             v-else-if="property.PredefinedProperty && property.PredefinedProperty.valueType === 'boolean'"
             :id="property.id"
@@ -60,7 +80,10 @@
           />
           <b-icon
               icon="x-circle"
-              class="property--remove-button"
+              :class="{
+                'property--remove-button': true,
+                'property--remove-button__margin': property.predefinedPropertyId && property.PredefinedProperty.valueSuffix
+              }"
               @click="() => {removeProperty(property.id)}"
           />
         </b-form-group>
@@ -473,6 +496,9 @@ export default {
     right: 20px;
     top: 14px;
     cursor: pointer;
+    &__margin {
+      right: 50px;
+    }
   }
 }
 </style>

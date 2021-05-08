@@ -17,6 +17,7 @@
         <router-view
             name="topview"
             :project="project"
+            :internal-project="internalProject"
             :data="topData"
             @reset="topData = {}"
         />

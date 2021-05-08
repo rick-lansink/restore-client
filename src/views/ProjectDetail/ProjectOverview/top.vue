@@ -1,6 +1,20 @@
 <template>
 <div>
-  <page-title>Project information</page-title>
+  <div style="display: flex; flex-direction: row; justify-content: space-between">
+    <page-title>Project information</page-title>
+    <b-btn
+        variant="outline-dark"
+        v-clipboard:copy="shareRequestLink"
+        v-clipboard:success="() => {
+          $toasted.info('Shareable project overview was copied to your clipboard!', {
+            duration: 5000
+          })
+        }"
+        size="sm"
+    >
+      <b-icon icon="share" font-scale="1" />
+    </b-btn>
+  </div>
   <component-title>Model {{ project.name }}</component-title>
   <table class="overview-table">
     <tr>
@@ -39,6 +53,18 @@ export default {
     project: {
       type: Object,
       default: () => {}
+    },
+    internalProject: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  computed: {
+    shareRequestLink() {
+      if (window.location.port) {
+        return `${window.location.hostname}:${window.location.port}/share/project/${this.internalProject.internalId}`
+      }
+      return `${window.location.hostname}/share/project/${this.internalProject.internalId}`
     }
   }
 }

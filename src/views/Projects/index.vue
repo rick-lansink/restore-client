@@ -79,6 +79,9 @@ export default {
         key: 'dueDate',
         sortable: true,
       }, {
+        key: 'isPublic',
+        sortable: true
+      }, {
         key: 'actions',
         label: ''
       }]

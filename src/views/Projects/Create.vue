@@ -31,6 +31,19 @@
             </b-form-group>
           </b-col>
         </b-row>
+        <b-row>
+          <b-col>
+            <b-form-group>
+              <label>Should search requests of this project be public?</label>
+              <b-checkbox
+                  v-model="form.isPublic"
+                  :unchecked-value="false"
+                  :value="true"
+                  switch
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
         <b-button type="submit" variant="primary">Next</b-button> &nbsp;
         <b-button type="reset" variant="danger">Reset</b-button>
       </b-form>
@@ -56,15 +69,12 @@ name: "Create",
       form: {
         name: '',
         dueDate: '',
+        isPublic: false
       },
       showForm: true,
       formStep: 1,
       projectId: null
     }
-  },
-  async mounted() {
-    //await this.initClient();
-
   },
   methods: {
     async onSubmit(e) {
@@ -73,10 +83,10 @@ name: "Create",
         mutation: createProject,
         variables: {
           name: this.form.name,
-          due: new Date(this.form.dueDate)
+          due: new Date(this.form.dueDate),
+          isPublic: this.form.isPublic
         }
       });
-      console.log(response);
       if(response.data.insert_Project.__typename === 'Project_mutation_response') {
         this.showForm = false;
         this.formStep = 2;
@@ -88,6 +98,7 @@ name: "Create",
       e.preventDefault();
       this.form.name = '';
       this.form.dueDate = ''
+      this.form.isPublic = false;
       this.form.ifcFile = null;
     },
     async attachOAuth() {

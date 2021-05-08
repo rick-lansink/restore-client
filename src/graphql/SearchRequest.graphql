@@ -17,6 +17,7 @@ query getProjectSearchRequests($projectId: String!) {
         deliveryUntil
         priority
         unitOfMeasurement
+        isPublic
         RootComponents {
             name
         }
@@ -41,6 +42,7 @@ query getSearchRequestById($requestId: uuid!) {
         deliveryUntil
         priority
         unitOfMeasurement
+        isPublic
         RootComponents {
             id
             valueHash
@@ -57,7 +59,7 @@ query getSearchRequestById($requestId: uuid!) {
             Properties {
                 id propertySet propertyKey propertyValue fromModel predefinedPropertyId
                 PredefinedProperty {
-                    valueType valueUnit propertyDescription
+                    valueType valueUnit propertyDescription valuePrefix valueSuffix
                 }
             }
         }
@@ -70,7 +72,7 @@ query getSearchRequestById($requestId: uuid!) {
             Properties {
                 id propertySet propertyKey propertyValue fromModel predefinedPropertyId
                 PredefinedProperty {
-                    valueType valueUnit propertyDescription
+                    valueType valueUnit propertyDescription valuePrefix valueSuffix
                 }
             }
         }

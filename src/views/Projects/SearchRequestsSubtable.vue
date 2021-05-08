@@ -4,7 +4,10 @@
     <div class="requests-gantt">
       <svg ref="gantt" />
     </div>
-    <b-button variant="primary" @click="() => {
+    <b-button
+        v-if="!hideViewButton"
+        variant="primary"
+        @click="() => {
       $router.push(`/project/${parentId}/overview`)
     }">
       View project
@@ -33,6 +36,10 @@ export default {
     parentId: {
       type: String,
       default: ''
+    },
+    hideViewButton: {
+      type: Boolean,
+      default: false
     }
   },
   data: function() {
@@ -61,7 +68,8 @@ export default {
           id: request.id,
           name: request.name,
           start: new Date(request.deliveryFrom).toISOString().split('T')[0],
-          end: new Date(request.deliveryUntil).toISOString().split('T')[0]
+          end: new Date(request.deliveryUntil).toISOString().split('T')[0],
+          custom_class: `bar-${request.priority}`
         }
       })
     },
@@ -116,6 +124,24 @@ export default {
 .bar-milestone {
   .bar {
     fill: $primary-color
+  }
+}
+
+.bar-GO {
+  .bar {
+    fill: $stoplight-three
+  }
+}
+
+.bar-ON_HOLD {
+  .bar {
+    fill: $stoplight-two
+  }
+}
+
+.bar-NO_GO {
+  .bar {
+    fill: $stoplight-one
   }
 }
 

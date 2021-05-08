@@ -21,9 +21,7 @@ export default {
   padding: 3vh 2vw;
 }
 body {
-  overflow: hidden;
   width: 100%;
-  height: 100%;
   background-color: $background-color !important;
 }
 .btn-primary {

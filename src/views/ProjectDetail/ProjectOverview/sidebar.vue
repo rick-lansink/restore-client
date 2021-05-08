@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="overflow-y: scroll;">
     <div>
       <page-title inverse>Search requests</page-title>
       <b-container :fluid="true" :style="{

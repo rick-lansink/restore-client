@@ -28,6 +28,19 @@
             </b-form-group>
           </b-col>
         </b-row>
+        <b-row>
+          <b-col>
+            <b-form-group>
+              <label>Should search requests of this project be public?</label>
+              <b-checkbox
+                  v-model="project.isPublic"
+                  :unchecked-value="false"
+                  :value="true"
+                  switch
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
         <b-button type="submit" variant="primary">Save</b-button> &nbsp;
         <b-button type="reset" variant="danger">Cancel</b-button>
       </b-form>
@@ -70,7 +83,8 @@ name: "Create",
         variables: {
           projectId: this.$route.params.projectId,
           name: this.project.name,
-          due: new Date(this.project.dueDate)
+          due: new Date(this.project.dueDate),
+          isPublic: this.project.isPublic
         }
       });
       this.$toasted.info('Project updated', {

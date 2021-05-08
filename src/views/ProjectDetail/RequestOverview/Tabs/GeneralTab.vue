@@ -3,50 +3,56 @@
     <b-form
         @submit="saveRequest"
     >
-      <b-form-group
-          class="inverted"
-          label="Request name"
-          label-for="form-request-name"
-          description="This name will be used when communicating on this request."
-      >
-        <b-form-input
-            id="form-request-name"
-            v-model="searchRequest.name"
-            type="text"
-            placeholder="Enter request name"
-            required
-        ></b-form-input>
-      </b-form-group>
-      <b-form-group
-          class="inverted"
-          description="This material or component will be used to calculate the quantities or dimensions and to set the right requirements for the request."
-      >
-        <label class="d-block">Selected material / component</label>
-        <h5 v-if="searchRequest.RootComponents && searchRequest.RootComponents.length > 0 && searchRequest.RootComponents[0].name">
-          <b-badge variant="light">{{searchRequest.RootComponents[0].name}}</b-badge>
-        </h5>
-        <h5 v-else-if="searchRequest.RootMaterials && searchRequest.RootMaterials.length > 0 && searchRequest.RootMaterials[0].name">
-          <b-badge variant="light">{{searchRequest.RootMaterials[0].name}}</b-badge>
-        </h5>
-        <p v-else>
-          Looks like no material or component was set. Click the button to set it.
-        </p>
-        <b-btn
-            variant="outline-light"
-            size="sm"
-            @click="() => {
+      <b-row>
+        <b-col>
+          <b-form-group
+              class="inverted"
+              label="Request name"
+              label-for="form-request-name"
+              description="This name will be used when communicating on this request."
+          >
+            <b-form-input
+                id="form-request-name"
+                v-model="searchRequest.name"
+                type="text"
+                placeholder="Enter request name"
+                required
+            ></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col>
+          <b-form-group
+              class="inverted"
+              description="This material or component will be used to calculate the quantities or dimensions and to set the right requirements for the request."
+          >
+            <label class="d-block">Selected material / component</label>
+            <h5 v-if="searchRequest.RootComponents && searchRequest.RootComponents.length > 0 && searchRequest.RootComponents[0].name">
+              <b-badge variant="light">{{searchRequest.RootComponents[0].name}}</b-badge>
+            </h5>
+            <h5 v-else-if="searchRequest.RootMaterials && searchRequest.RootMaterials.length > 0 && searchRequest.RootMaterials[0].name">
+              <b-badge variant="light">{{searchRequest.RootMaterials[0].name}}</b-badge>
+            </h5>
+            <p v-else>
+              Looks like no material or component was set. Click the button to set it.
+            </p>
+            <b-btn
+                variant="outline-light"
+                size="sm"
+                @click="() => {
                     $router.push(`/project/${$route.params.projectId}/request/${$route.params.requestId}/material_component`)
                   }"
-        >
-          {{ (searchRequest.RootComponents &&
-            searchRequest.RootComponents. length > 0 &&
-            searchRequest.RootComponents[0].name) || (
-            searchRequest.RootMaterials &&
-            searchRequest.RootMaterials.length > 0 &&
-            searchRequest.RootMaterials.name
-        ) ? 'Change material' : 'Set material'}}
-        </b-btn>
-      </b-form-group>
+            >
+              {{ (searchRequest.RootComponents &&
+                searchRequest.RootComponents. length > 0 &&
+                searchRequest.RootComponents[0].name) || (
+                searchRequest.RootMaterials &&
+                searchRequest.RootMaterials.length > 0 &&
+                searchRequest.RootMaterials.name
+            ) ? 'Change material' : 'Set material'}}
+            </b-btn>
+          </b-form-group>
+        </b-col>
+      </b-row>
       <b-row>
         <b-col>
           <b-form-group
@@ -96,6 +102,22 @@
             <b-form-datepicker
                 id="form-request-deliveryuntil"
                 v-model="searchRequest.deliveryUntil"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col>
+          <b-form-group
+              class="inverted"
+              description="Set whether this search request can be publicly accessed on the project share page"
+          >
+            <label>Is this request public?</label>
+            <b-checkbox
+                v-model="searchRequest.isPublic"
+                :unchecked-value="false"
+                :value="true"
+                switch
             />
           </b-form-group>
         </b-col>

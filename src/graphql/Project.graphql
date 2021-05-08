@@ -5,14 +5,16 @@ query getProjectById($projectId: String!) {
         projectId
         internalId
         name
+        isPublic
         dueDate
     }
 }
 
-mutation createProject($name: String! $due: date!) {
+mutation createProject($name: String! $due: date!, $isPublic: Boolean!) {
     insert_Project(objects: {
         dueDate: $due,
         name: $name,
+        isPublic: $isPublic,
         HasUsers: {
             data: {}
         }
@@ -24,10 +26,11 @@ mutation createProject($name: String! $due: date!) {
     }
 }
 
-mutation updateProject($projectId: String!, $name: String!, $due: date!) {
+mutation updateProject($projectId: String!, $name: String!, $due: date!, $isPublic: Boolean!) {
     update_Project(where: {projectId: {_eq: $projectId}}, _set: {
         dueDate: $due,
-        name: $name
+        name: $name,
+        isPublic: $isPublic
     }) {
         affected_rows
     }

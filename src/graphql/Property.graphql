@@ -21,6 +21,8 @@ query restoreProperties($requestUnit: String, $componentType: String) {
         valueType
         valueUnit
         propertyDescription
+        valuePrefix
+        valueSuffix
     }
 }
 

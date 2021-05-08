@@ -13,6 +13,10 @@ import RequestOverviewTop from '../views/ProjectDetail/RequestOverview/top';
 import AttachOAuth from "../views/Projects/AttachOAuth";
 import ProjectOverviewSidebar from "../views/ProjectDetail/ProjectOverview/sidebar";
 import ProjectOverviewTop from '../views/ProjectDetail/ProjectOverview/top';
+
+import ProjectShare from '../views/Share/Project'
+import RequestShare from '../views/Share/SearchRequest/Share'
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -20,6 +24,16 @@ const routes = [
     path: '/',
     name: 'Login',
     component: Home
+  },
+  {
+    path: '/share/project/:projectId',
+    name: 'ShareProject',
+    component: ProjectShare
+  },
+  {
+    path: '/share/request/:requestId',
+    name: 'ShareRequest',
+    component: RequestShare
   },
   {
     path: '/projects',

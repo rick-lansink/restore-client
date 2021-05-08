@@ -1,0 +1,146 @@
+query publicProject($projectId: uuid!) {
+    Project(where: {
+        internalId: {_eq: $projectId}
+    }) {
+        internalId
+        projectId
+        name
+        dueDate
+        created_at
+        SearchRequests {
+            id
+            name
+            created_at
+            dueDate
+            extraRequirements
+            extraWishes
+            deliveryFrom
+            deliveryUntil
+            unitOfMeasurement
+            priority
+            Project {
+                name
+            }
+            RootMaterials {
+                id
+                volume
+                surfaceArea
+                name
+                usedBy
+                Properties {
+                    id
+                    propertySet
+                    propertyKey
+                    propertyValue
+                    fromModel
+                    PredefinedProperty {
+                        propertyKey
+                        propertyDescription
+                        valueType
+                        valuePrefix
+                        valueSuffix
+                    }
+                }
+            }
+            RootComponents {
+                id
+                valueHash
+                name
+                type
+                DimensionSets {
+                   dimensionHash
+                    dimensionOne
+                    dimensionTwo
+                    dimensionThree
+                    usedBy
+                    surfaceArea
+                    volume
+                }
+                Properties {
+                    id
+                    propertySet
+                    propertyKey
+                    propertyValue
+                    fromModel
+                    PredefinedProperty {
+                        propertyKey
+                        propertyDescription
+                        valueType
+                        valuePrefix
+                        valueSuffix
+                    }
+                }
+            }
+        }
+    }
+}
+
+query publicRequest($requestId: uuid!) {
+    SearchRequest(where: {
+        id: {_eq: $requestId}
+    }) {
+        id
+        name
+        created_at
+        dueDate
+        extraRequirements
+        extraWishes
+        deliveryFrom
+        deliveryUntil
+        unitOfMeasurement
+        priority
+        Project {
+            name
+        }
+        RootMaterials {
+            id
+            volume
+            surfaceArea
+            name
+            usedBy
+            Properties {
+                id
+                propertySet
+                propertyKey
+                propertyValue
+                fromModel
+                PredefinedProperty {
+                    propertyKey
+                    propertyDescription
+                    valueType
+                    valuePrefix
+                    valueSuffix
+                }
+            }
+        }
+        RootComponents {
+            id
+            valueHash
+            name
+            type
+            DimensionSets {
+                dimensionHash
+                dimensionOne
+                dimensionTwo
+                dimensionThree
+                usedBy
+                surfaceArea
+                volume
+            }
+            Properties {
+                id
+                propertySet
+                propertyKey
+                propertyValue
+                fromModel
+                PredefinedProperty {
+                    propertyKey
+                    propertyDescription
+                    valueType
+                    valuePrefix
+                    valueSuffix
+                }
+            }
+        }
+    }
+}
