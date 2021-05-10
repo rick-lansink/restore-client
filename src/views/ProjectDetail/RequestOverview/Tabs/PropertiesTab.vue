@@ -168,7 +168,10 @@ export default {
           requestUnit: this.apolloRequestUnit,
           componentType: this.apolloComponentType
         }
-      }
+      },
+      skip () {
+        return !this.searchRequest.id
+      },
     }
   },
   computed: {
@@ -179,6 +182,7 @@ export default {
       return this.searchRequest.RootComponents[0];
     },
     apolloRequestUnit() {
+      console.log(this.searchRequest, this.searchRequest.unitOfMeasurement);
       return this.searchRequest.unitOfMeasurement ? this.searchRequest.unitOfMeasurement : 'NONE'
     },
     apolloComponentType() {

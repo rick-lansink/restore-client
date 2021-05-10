@@ -191,7 +191,7 @@ name: "SearchRequestShare",
               : 'N/A'
         case 'm3':
           return !isNaN(rootMaterial.volume) ?
-              `${rootMaterial.volume.toFixed(2)}`
+              `${rootMaterial.volume.toFixed(2)} m3`
               : 'N/A'
         default:
           return 'N/A';

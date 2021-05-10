@@ -1,5 +1,38 @@
 <template>
 <div>
+  <b-alert
+      :show="project.lastRevisionId !== internalProject.revisionId"
+      variant="warning"
+      style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start"
+  >
+    <span style="display: flex; flex-direction: row">
+      <b-icon variant="exclamation-circle" />
+      <p style="margin-bottom: 0">This project's IFC file has been updated</p>
+    </span>
+    <b-btn
+      class="update-requests-btn alert-heading"
+      variant="link"
+      size="sm"
+      @click="startCompareService"
+    >
+      Update requests data
+    </b-btn>
+    <b-toast
+        id="service-toast"
+        variant="info"
+        solid
+        no-auto-hide
+        no-close-button
+    >
+      <template #toast-title>
+        <div class="d-flex flex-grow-1 align-items-baseline">
+          <b-spinner small label="Spinning"></b-spinner>
+          <strong class="mr-auto" style="margin-left: 10px;">Updating request info</strong>
+        </div>
+      </template>
+      Fetching and updating request information (this might take a while)
+    </b-toast>
+  </b-alert>
   <div style="display: flex; flex-direction: row; justify-content: space-between">
     <page-title>Project information</page-title>
     <b-btn
@@ -43,6 +76,9 @@
 <script>
 import PageTitle from "../../../components/typography/PageTitle";
 import ComponentTitle from "../../../components/typography/ComponentTitle";
+import viewerApi from "@/viewer/ViewerApi";
+import {getSearchRequestsCompareData} from '@/graphql/SearchRequest.graphql'
+import RevisionCompareService from '@/libs/RevisionCompareService'
 export default {
   name: 'ProjectDetail',
   components: {
@@ -57,6 +93,25 @@ export default {
     internalProject: {
       type: Object,
       default: () => {}
+    },
+    client: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  data: function() {
+    return {
+      rootMaterial: {
+        schemaId: null,
+        fileId: null,
+        items: [],
+      },
+      rootComponent: {
+        schemaId: null,
+        fileId: null,
+        items: [],
+        rootType: null,
+      }
     }
   },
   computed: {
@@ -66,6 +121,87 @@ export default {
       }
       return `${window.location.hostname}/share/project/${this.internalProject.internalId}`
     }
+  },
+  methods: {
+    async startCompareService() {
+      this.$bvToast.show('service-toast')
+      await this.getProjectMaterials(this.project);
+      await this.getProjectComponents(this.project);
+      let searchRequests = await this.$apollo.query({
+        query: getSearchRequestsCompareData,
+        variables: {
+          projectId: this.internalProject.internalId
+        }
+      });
+      if(searchRequests.data.SearchRequest) {
+        let matchService = new RevisionCompareService(searchRequests.data.SearchRequest, this.rootMaterial.items, this.rootComponent.items)
+        matchService.startCompare();
+      }
+
+    },
+    async getProjectMaterials(project) {
+      this.rootMaterial.schemaId = await this.getRootMaterialSchemaId();
+      this.rootMaterial.fileId = await this.getExtendedDataFileId(project.lastRevisionId, this.rootMaterial.schemaId);
+      this.rootMaterial.items = await this.getRootMaterials(this.rootMaterial.fileId);
+    },
+    async getProjectComponents(project) {
+      this.rootComponent.schemaId = await this.getRootComponentSchemaId();
+      this.rootComponent.fileId = await this.getExtendedDataFileId(project.lastRevisionId, this.rootComponent.schemaId);
+      this.rootComponent.items = await this.getRootComponents(this.rootComponent.fileId);
+    },
+    async getRootMaterialSchemaId() {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getExtendedDataSchemaByName',
+        data: {
+          name: "ROOT_MATERIALS_DATASET_0_0_1"
+        }
+      });
+      return response.oid;
+    },
+    async getExtendedDataFileId(roid, soid) {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getLastExtendedDataOfRevisionAndSchema',
+        data: {
+          roid: roid,
+          schemaId: soid
+        }
+      });
+      return response.fileId;
+    },
+    async getRootMaterials(fileId) {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getFile',
+        data: {
+          fileId: fileId
+        }
+      })
+      let data = atob(response.data);
+      return (JSON.parse(data)).records;
+    },
+    async getRootComponentSchemaId() {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getExtendedDataSchemaByName',
+        data: {
+          name: "ROOT_COMPONENTS_DATASET_0_0_1"
+        }
+      });
+      return response.oid;
+    },
+    async getRootComponents(fileId) {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getFile',
+        data: {
+          fileId: fileId
+        }
+      })
+      let data = atob(response.data);
+      return (JSON.parse(data)).records;
+    },
   }
 }
 </script>
@@ -75,5 +211,11 @@ export default {
   font-size: 16px;
   min-width: 300px;
   margin-bottom: 20px;
+}
+
+.update-requests-btn {
+  font-size: 10px !important;
+  font-weight: bold !important;
+  padding: 0 !important;
 }
 </style>

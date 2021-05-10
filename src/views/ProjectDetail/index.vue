@@ -18,6 +18,7 @@
             name="topview"
             :project="project"
             :internal-project="internalProject"
+            :client="client"
             :data="topData"
             @reset="topData = {}"
         />

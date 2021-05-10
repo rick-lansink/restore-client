@@ -3,8 +3,6 @@
     <b-table
         :items="rootComponent.DimensionSets"
         :fields="requestComponentFields"
-        :sticky-header="true"
-        :borderless="true"
         :head-variant="'primary-background'"
     />
   </div>

@@ -1,3 +1,51 @@
+fragment requestDetail on SearchRequest {
+    id
+    name
+    created_at
+    updated_at
+    dueDate
+    extraRequirements
+    extraWishes
+    deliveryFrom
+    deliveryUntil
+    priority
+    unitOfMeasurement
+    isPublic
+    RootComponents {
+        id
+        valueHash
+        name
+        type
+        DimensionSets {
+            id
+            dimensionHash
+            dimensionOne dimensionTwo dimensionThree
+            usedBy
+            volume
+            surfaceArea
+        }
+        Properties {
+            id propertySet propertyKey propertyValue fromModel predefinedPropertyId
+            PredefinedProperty {
+                valueType valueUnit propertyDescription valuePrefix valueSuffix
+            }
+        }
+    }
+    RootMaterials {
+        id
+        volume
+        surfaceArea
+        name
+        usedBy
+        Properties {
+            id propertySet propertyKey propertyValue fromModel predefinedPropertyId
+            PredefinedProperty {
+                valueType valueUnit propertyDescription valuePrefix valueSuffix
+            }
+        }
+    }
+}
+
 query getProjectSearchRequests($projectId: String!) {
     SearchRequest(where: {
         Project: {
@@ -27,55 +75,19 @@ query getProjectSearchRequests($projectId: String!) {
     }
 }
 
+query getSearchRequestsCompareData($projectId: uuid!) {
+    SearchRequest(where: {
+        projectId: {_eq: $projectId}
+    }) {
+        ...requestDetail
+    }
+}
+
 query getSearchRequestById($requestId: uuid!) {
     SearchRequest(where: {
         id: {_eq: $requestId}
     }) {
-        id
-        name
-        created_at
-        updated_at
-        dueDate
-        extraRequirements
-        extraWishes
-        deliveryFrom
-        deliveryUntil
-        priority
-        unitOfMeasurement
-        isPublic
-        RootComponents {
-            id
-            valueHash
-            name
-            type
-            DimensionSets {
-                id
-                dimensionHash
-                dimensionOne dimensionTwo dimensionThree
-                usedBy
-                volume
-                surfaceArea
-            }
-            Properties {
-                id propertySet propertyKey propertyValue fromModel predefinedPropertyId
-                PredefinedProperty {
-                    valueType valueUnit propertyDescription valuePrefix valueSuffix
-                }
-            }
-        }
-        RootMaterials {
-            id
-            volume
-            surfaceArea
-            name
-            usedBy
-            Properties {
-                id propertySet propertyKey propertyValue fromModel predefinedPropertyId
-                PredefinedProperty {
-                    valueType valueUnit propertyDescription valuePrefix valueSuffix
-                }
-            }
-        }
+        ...requestDetail
     }
 }
 
