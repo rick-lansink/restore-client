@@ -33,6 +33,7 @@ fragment requestDetail on SearchRequest {
     }
     RootMaterials {
         id
+        objectId
         volume
         surfaceArea
         name

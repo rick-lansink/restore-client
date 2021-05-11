@@ -90,7 +90,6 @@ name: "Create",
       if(response.data.insert_Project.__typename === 'Project_mutation_response') {
         this.showForm = false;
         this.formStep = 2;
-        console.log(response.data.insert_Project)
         this.projectId = response.data.insert_Project.returning[0].internalId;
       }
     },

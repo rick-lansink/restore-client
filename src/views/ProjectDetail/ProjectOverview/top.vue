@@ -1,7 +1,7 @@
 <template>
 <div>
   <b-alert
-      :show="project.lastRevisionId !== internalProject.revisionId"
+      :show="bimLastRevisionDate > new Date(internalProject.lastRevisionUpdate)"
       variant="warning"
       style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start"
   >
@@ -31,6 +31,26 @@
         </div>
       </template>
       Fetching and updating request information (this might take a while)
+    </b-toast>
+    <b-toast
+        id="service-success-toast"
+        variant="success"
+        solid
+        no-auto-hide
+    >
+      <template #toast-title>
+        <div class="d-flex flex-grow-1 align-items-baseline">
+          <strong class="mr-auto" style="margin-left: 10px;">Updated requests</strong>
+        </div>
+      </template>
+      Request information was succesfully updated to the new revision
+      <b-link
+          v-if="generatedReport"
+          :href="generatedReport"
+          download="generated_restore_comparison_report.txt"
+      >
+        Download generated report
+      </b-link>
     </b-toast>
   </b-alert>
   <div style="display: flex; flex-direction: row; justify-content: space-between">
@@ -78,6 +98,7 @@ import PageTitle from "../../../components/typography/PageTitle";
 import ComponentTitle from "../../../components/typography/ComponentTitle";
 import viewerApi from "@/viewer/ViewerApi";
 import {getSearchRequestsCompareData} from '@/graphql/SearchRequest.graphql'
+import {updateProjectRequests} from '@/graphql/Project.graphql'
 import RevisionCompareService from '@/libs/RevisionCompareService'
 export default {
   name: 'ProjectDetail',
@@ -111,7 +132,9 @@ export default {
         fileId: null,
         items: [],
         rootType: null,
-      }
+      },
+      bimLastRevisionDate: null,
+      generatedReport: null
     }
   },
   computed: {
@@ -120,6 +143,23 @@ export default {
         return `${window.location.hostname}:${window.location.port}/share/project/${this.internalProject.internalId}`
       }
       return `${window.location.hostname}/share/project/${this.internalProject.internalId}`
+    }
+  },
+  mounted() {
+    if (this.client && this.project) {
+      this.fetchLastRevisionUpdateDate();
+    }
+  },
+  watch: {
+    'client': function(client) {
+      if (client && this.project) {
+        this.fetchLastRevisionUpdateDate();
+      }
+    },
+    'project': function(project) {
+      if (this.client && project) {
+        this.fetchLastRevisionUpdateDate();
+      }
     }
   },
   methods: {
@@ -135,9 +175,13 @@ export default {
       });
       if(searchRequests.data.SearchRequest) {
         let matchService = new RevisionCompareService(searchRequests.data.SearchRequest, this.rootMaterial.items, this.rootComponent.items)
-        matchService.startCompare();
+        let matches = matchService.startCompare();
+        await this.saveUpdatedRequests(matches);
+        let generatedReport = matchService.getGeneratedReport();
+        this.generatedReport = URL.createObjectURL(generatedReport);
+        this.$bvToast.hide('service-toast');
+        this.$bvToast.show('service-success-toast');
       }
-
     },
     async getProjectMaterials(project) {
       this.rootMaterial.schemaId = await this.getRootMaterialSchemaId();
@@ -202,6 +246,41 @@ export default {
       let data = atob(response.data);
       return (JSON.parse(data)).records;
     },
+    async fetchLastRevisionUpdateDate() {
+      let response = await viewerApi.callClient(this.client, {
+        interfaceName: 'ServiceInterface',
+        methodName: 'getRevision',
+        data: {
+          roid: this.project.lastRevisionId
+        }
+      });
+      this.bimLastRevisionDate = new Date(response.date);
+    },
+    async saveUpdatedRequests(requests) {
+      let updateData = {
+        internalId: this.internalProject.internalId,
+        lastRevisionUpdate: new Date(),
+        SearchRequests: {
+          data: [
+            ...requests
+          ],
+          on_conflict: {
+            constraint: 'SearchRequest_pkey',
+            update_columns: [
+                'name'
+            ]
+          }
+        }
+      }
+      console.log(updateData);
+      let response = await this.$apollo.mutate({
+        mutation: updateProjectRequests,
+        variables: {
+          object: updateData
+        }
+      })
+      console.log(response);
+    }
   }
 }
 </script>

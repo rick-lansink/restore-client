@@ -5,6 +5,12 @@ export default class RevisionCompareService {
         this.newRootComponents = this.convertRootComponents(rootComponents);
 
         this.compareReport = [];
+
+        this.entityLists = {
+            rootComponents: [],
+            dimensionSets: [],
+            rootMaterials: [],
+        }
     }
 
     startCompare() {
@@ -16,9 +22,35 @@ export default class RevisionCompareService {
         }
         let newRequests = this.oldSearchRequests.map((request) => {
             if (request.RootComponents && request.RootComponents[0]) {
-                request.Rootcomponents[0] = this.compareRootComponent(request.RootComponents[0], request);
+                let newRootComponents = this.compareRootComponent(request.RootComponents[0], request)
+                if (newRootComponents) {
+                    request.RootComponents = {
+                        data: [newRootComponents],
+                        on_conflict: {
+                            constraint: 'RootComponent_pkey',
+                            update_columns: ['name']
+                        }
+                    };
+                } else {
+                    delete request.RootComponents;
+                }
+                delete request.RootMaterials;
             } else if (request.RootMaterials && request.RootMaterials[0]) {
-                request.RootMaterials[0] = this.compareRootMaterial(request.RootMaterials[0], request)
+                let newRootMaterials = this.compareRootMaterial(request.RootMaterials[0], request)
+                if (newRootMaterials) {
+                    request.RootMaterials = {
+                        data: [newRootMaterials],
+                        on_conflict: {
+                            constraint: 'RootMaterial_pkey',
+                            update_columns: [
+                                'volume', 'surfaceArea', 'usedBy'
+                            ]
+                        }
+                    }
+                } else {
+                    delete request.rootMaterials;
+                }
+                delete request.RootComponents;
             } else {
                 this.addMessageToReport(
                     'no_material_component',
@@ -26,10 +58,13 @@ export default class RevisionCompareService {
                 )
                 return null;
             }
+            delete request.__typename;
+            delete request.created_at;
+            delete request.updated_at;
             return request;
         })
-        console.log(this.compareReport);
-        console.log(newRequests);
+
+        return newRequests;
     }
 
     convertRootComponents(components) {
@@ -42,34 +77,55 @@ export default class RevisionCompareService {
 
     compareRootComponent(component, request) {
         let newComponent = this.findNewRootComponent(component);
-        console.log(newComponent);
-        //let componentCopy = JSON.parse(JSON.stringify(component));
         if(!newComponent) {
+            console.log(component);
             this.addMessageToReport(
                 'no_new_component',
                 `This component cannot be found in the new revision. The component ${component.name} was therefore removed from ${request.name}`
             )
-            return this.unsetRootComponentOnRequest(request, component)
+            return null
         } else {
-            return this.compareComponentDetails(component, newComponent);
+            let updatedComponent = component;
+            updatedComponent.Properties = {
+                data: this.compareProperties(updatedComponent.Properties, newComponent.inheritedProperties),
+                on_conflict: {
+                    constraint: 'Property_pkey',
+                    update_columns: ['propertyValue']
+                }
+            }
+            updatedComponent.DimensionSets = {
+                data: this.compareDimensionSets(updatedComponent.DimensionSets, newComponent.dimensionSets),
+                on_conflict: {
+                    constraint: 'DimensionSet_pkey',
+                    update_columns: [
+                        'surfaceArea', 'volume', 'usedBy'
+                    ]
+                }
+            }
+            delete updatedComponent.__typename
+            return updatedComponent;
         }
-    }
-
-    compareComponentDetails(oldComponent, newComponent) {
-        console.log(oldComponent, newComponent)
     }
 
     compareRootMaterial(material, request) {
         let newMaterial = this.findNewRootMaterial(material);
-        console.log(newMaterial);
         if(!newMaterial) {
             this.addMessageToReport(
                 'no_new_material',
                 `This material cannot be found in the new revision. The material ${material.name} was therefore removed from ${request.name}`
             )
-            return this.unsetRootComponentOnRequest(request, material)
+            return null;
         } else {
-            return this.compareMaterialDetails(material, newMaterial)
+            let updatedMaterial = this.compareMaterialDetails(material, newMaterial)
+            updatedMaterial.Properties = {
+                data: this.compareProperties(updatedMaterial.Properties, newMaterial.values.properties),
+                on_conflict: {
+                    constraint: 'Property_pkey',
+                    update_columns: ['propertyValue']
+                }
+            };
+            delete updatedMaterial.__typename;
+            return updatedMaterial;
         }
     }
 
@@ -79,12 +135,14 @@ export default class RevisionCompareService {
             oldMaterial.surfaceArea !== newMaterial.values.surfaceArea ||
             oldMaterial.usedBy.length !== newMaterial.values.usedBy.length
         ) {
+            this.entityLists.rootMaterials.push(oldMaterial.id)
             return this.setNewPropertiesOnMaterial(oldMaterial, newMaterial);
         } else {
             this.addMessageToReport(
                 'no_changes',
                 `Material ${oldMaterial.name} was skipped because no changes were made to it.`
                 )
+            this.entityLists.rootMaterials.push(oldMaterial.id)
             return oldMaterial;
         }
     }
@@ -93,7 +151,7 @@ export default class RevisionCompareService {
         let materialCopy = JSON.parse(JSON.stringify(oldMaterial));
         materialCopy.volume = newMaterial.values.volume;
         materialCopy.surfaceArea = newMaterial.values.surfaceArea;
-        materialCopy.usedBy = newMaterial.values.usedBy
+        materialCopy.usedBy = newMaterial.values.usedBy.map((comp) => comp.globalId)
         this.addMessageToReport(
             'set_material_properties',
             [
@@ -104,6 +162,48 @@ export default class RevisionCompareService {
         )
         delete materialCopy.__typename;
         return materialCopy;
+    }
+
+    compareDimensionSets(oldDimensionSets, newDimensionSets) {
+        let updatedDimensionSets = [];
+        oldDimensionSets.map((oldDSet) => {
+            let newDimensionSet = newDimensionSets.find((newDSet) => newDSet.dimensionHash === oldDSet.dimensionHash)
+            if (newDimensionSet) {
+                this.addMessageToReport(
+                    'set_dimensionset_properties',
+                    [
+                        `Updated volume on ${oldDSet.dimensionHash} from ${oldDSet.volume} to ${newDimensionSet.totalVolume}`,
+                        `Updated surface area on ${oldDSet.dimensionHash} from ${oldDSet.surfaceArea} to ${newDimensionSet.totalSurfaceArea}`,
+                        `Updated items on ${oldDSet.dimensionHash} from ${oldDSet.usedBy.length} items to ${newDimensionSet.usedByObjects.length}`
+                    ]
+                );
+                oldDSet.usedBy = newDimensionSet.usedByObjects;
+                oldDSet.surfaceArea = newDimensionSet.totalSurfaceArea;
+                oldDSet.volume = newDimensionSet.totalVolume;
+                delete oldDSet.__typename;
+                updatedDimensionSets.push(oldDSet);
+                this.entityLists.dimensionSets.push(oldDSet.id);
+            }
+        });
+        if (updatedDimensionSets.length === 0) {
+            newDimensionSets.map((newDSet) => {
+                let splitDimensions = newDSet.dimensionHash.replace(/^\[|\]$/g, "").split(', ')
+                updatedDimensionSets.push({
+                    dimensionHash:  newDSet.dimensionHash,
+                    dimensionOne:   splitDimensions[0],
+                    dimensionTwo:   splitDimensions[1],
+                    dimensionThree: splitDimensions[2],
+                    usedBy:         newDSet.usedByObjects,
+                    surfaceArea:    newDSet.totalSurfaceArea,
+                    volume:         newDSet.totalVolume
+                });
+            });
+            this.addMessageToReport(
+                'replaced_dimensionsets',
+                'No dimensions sets remained the same in the new revision. All sets were replaced.'
+            );
+        }
+        return updatedDimensionSets;
     }
 
     findNewRootComponent(component) {
@@ -118,12 +218,36 @@ export default class RevisionCompareService {
         })
     }
 
-    unsetRootComponentOnRequest(request, component) {
-        console.log(request, component);
-    }
-
-    unsetRootMaterialOnRequest() {
-        return null;
+    compareProperties(oldProperties, newProperties) {
+        return oldProperties.map((oldProp) => {
+            let newProp = newProperties[`${oldProp.propertySet}__${oldProp.propertyKey}`];
+            if (newProp && newProp.length === 1) {
+                let oldValue = oldProp.propertyValue;
+                oldProp.propertyValue = newProp[0];
+                if (oldValue !== newProp[0]) {
+                    this.addMessageToReport(
+                        'set_property_update',
+                        `property ${oldProp.propertySet} ${oldProp.propertyKey} was updated from ${oldValue} to ${oldProp.propertyValue}.`
+                    )
+                }
+            } else if (oldProp.fromModel) {
+                oldProp.fromModel = false;
+                this.addMessageToReport(
+                    'set_property_unset',
+                    `property ${oldProp.propertySet} ${oldProp.propertyKey} was unset as model property because it does not exist anymore.`
+                )
+            } else {
+                this.addMessageToReport(
+                    'skip_property_update',
+                    `property ${oldProp.propertySet} ${oldProp.propertyKey} was skipped because it is not a model property.`
+                )
+            }
+            if(oldProp) {
+                delete oldProp.__typename;
+                delete oldProp.PredefinedProperty;
+                return oldProp;
+            }
+        }).filter(Boolean);
     }
 
     addMessageToReport(key, message) {
@@ -131,5 +255,22 @@ export default class RevisionCompareService {
             key: key,
             message: message
         })
+    }
+
+    getGeneratedReport() {
+        let reportText = '[ReStore] Generated compare report \n';
+        reportText += '------------------------------- \n'
+        this.compareReport.map((reportLine) => {
+            if (Array.isArray(reportLine.message)) {
+                reportLine.message.map((innerMessage) => {
+                    reportText += `- ${innerMessage} \n`
+                })
+            } else {
+                reportText += `- ${reportLine.message} \n`
+            }
+        });
+        return new Blob([reportText], {
+            type: 'text/plain'
+        });
     }
 }

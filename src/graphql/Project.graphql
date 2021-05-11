@@ -7,6 +7,7 @@ query getProjectById($projectId: String!) {
         name
         isPublic
         dueDate
+        lastRevisionUpdate
     }
 }
 
@@ -32,6 +33,18 @@ mutation updateProject($projectId: String!, $name: String!, $due: date!, $isPubl
         name: $name,
         isPublic: $isPublic
     }) {
+        affected_rows
+    }
+}
+
+mutation updateProjectRequests($object: [Project_insert_input!]!) {
+    insert_Project(
+        objects: $object,
+        on_conflict: {
+            constraint: Project_pkey,
+            update_columns: [lastRevisionUpdate]
+        }
+    ) {
         affected_rows
     }
 }

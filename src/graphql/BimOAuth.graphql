@@ -5,6 +5,7 @@ query userProjects {
         created_at
         name
         isPublic
+        lastRevisionUpdate
         SearchRequests {
             id
             name

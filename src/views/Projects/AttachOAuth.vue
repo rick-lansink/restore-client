@@ -14,7 +14,8 @@ export default {
       await store.dispatch('bimAuth/syncOAuthCodes', {
         poid: urlParams.get('poid'),
         newOAuthToken: urlParams.get('code'),
-        internalId: this.$route.params.id
+        internalId: this.$route.params.id,
+        revisionId: urlParams.get('')
       })
     }
   }
