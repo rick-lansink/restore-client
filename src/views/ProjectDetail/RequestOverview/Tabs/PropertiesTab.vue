@@ -87,6 +87,14 @@
               @click="() => {removeProperty(property.id)}"
           />
         </b-form-group>
+        <b-button
+            class="inverse"
+            variant="link"
+            type="cancel"
+            @click="() => {
+                  $router.push(`/project/${$route.params.projectId}/overview`)
+                }"
+        >Go back</b-button> &nbsp;
         <b-btn
             type="submit"
             variant="outline-light"

@@ -12,14 +12,14 @@
         </b-tab>
         <b-tab
           class="selector-tab"
-          title="Requirements"
+          title="Request requirements"
           title-link-class="text-light"
         >
           <requirements-tab />
         </b-tab>
         <b-tab
           class="selector-tab"
-          title="Properties"
+          title="Material properties"
           title-link-class="text-light"
           lazy
         >
@@ -116,9 +116,6 @@ export default {
   max-height: 65vh;
   margin-bottom: 20px;
   overflow-y: scroll;
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .tab-content {

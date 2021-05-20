@@ -7,6 +7,7 @@
         @click="printPage"
       >
         <b-icon icon="printer" />
+        Print project
       </b-btn>
     </div>
     <b-card>

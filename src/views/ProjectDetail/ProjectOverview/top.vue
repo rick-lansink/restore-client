@@ -66,6 +66,7 @@
         size="sm"
     >
       <b-icon icon="share" font-scale="1" />
+      Share project
     </b-btn>
   </div>
   <component-title>Model {{ project.name }}</component-title>

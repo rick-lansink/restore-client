@@ -13,6 +13,7 @@
           @click="printRequest"
       >
         <b-icon icon="printer" />
+        Print request
       </b-btn>
     </div>
     <component-text

@@ -282,8 +282,5 @@ export default {
   height: 75vh;
   margin-bottom: 20px;
   overflow-y: scroll;
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 </style>

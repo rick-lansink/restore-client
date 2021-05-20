@@ -3,13 +3,11 @@ import {BIMServerLoaderPlugin} from "@xeokit/xeokit-sdk/src/plugins/BIMServerLoa
 import {Viewer} from "@xeokit/xeokit-sdk/src/viewer/Viewer";
 
 export default {
-    BIM_SERVER_ADDRESS: 'http://localhost:8080',
+    BIM_SERVER_ADDRESS: 'https://bimserver.link:8443',
     CLIENT_NAME: 'ReStore',
     CLIENT_DESCRIPTION: 'Service for creating search requests for second-hand materials',
-    CLIENT_URL: 'https://localhost:8081',
+    CLIENT_URL: 'https://localhost:8080',
     REDIRECT_URL: document.location.href,
-    USER_NAME: 'rick.lansink@jstack.eu',
-    PASSWORD: 'test12345',
     poid: 196609,
 
     initViewer: function (canvas) {
@@ -44,19 +42,6 @@ export default {
             bimServerClient: client
         });
 
-    },
-    clientLogin: function (client, login) {
-        return new Promise((resolve) => {
-            client.init(() => {
-                client.login(
-                    login ? login.username : this.USER_NAME,
-                    login ? login.password : this.PASSWORD,
-                    (result) => {
-                        return resolve(result);
-                    })
-            });
-        })
-        //await (util.promisify(client.login))(this.USER_NAME, this.PASSWORD);
     },
     oAuthRegister: async function() {
         let response = await fetch(this.BIM_SERVER_ADDRESS + '/oauth/register', {

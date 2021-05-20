@@ -9,7 +9,6 @@ import store from "@/store";
 export const getInstance = () => instance;
 
 const DEFAULT_REDIRECT_CALLBACK = () => {
-    console.log(window.location.pathname);
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 

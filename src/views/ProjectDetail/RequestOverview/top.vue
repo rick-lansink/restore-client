@@ -13,6 +13,7 @@
         size="sm"
       >
         <b-icon icon="share" font-scale="1" />
+        Share request
       </b-btn>
     </div>
     <div>
